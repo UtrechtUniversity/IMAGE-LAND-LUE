@@ -1,0 +1,22 @@
+# maps
+*.map
+*.tif
+*.tiff
+*.nc
+*.NC
+*.xml
+
+# non-map data files
+*.txt
+*.xlsx
+*.npy
+
+
+# IMAGE data files
+*.const
+*.OUT
+
+# model output maps
+
+# data folder
+data/
