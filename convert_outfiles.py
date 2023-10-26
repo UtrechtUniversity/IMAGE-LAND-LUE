@@ -1,4 +1,4 @@
-"""Reads agrprod.out files."""
+"""Converts agrprod.out files."""
 
 import numpy as np
 
@@ -6,7 +6,13 @@ import parameters as prm
 
 def convert_crop_outfiles(crop_type):
     """
-    Reads agr. dem. .OUT file, loads data into a 3D np array and saves it.
+    Reads agr. dem. .OUT files and saves the data in numpy .npy format.
+
+    Parameters
+    ----------
+    crop_type : str
+                determines whether the demand files being read contain
+                food crop, fodder or bioenergy crop data.
     """
     # determine whether input is food, grass or bioenergy crop demand
     crop_attrs = {"food": {"name": "AGRPRODC.OUT",
@@ -50,7 +56,14 @@ def convert_crop_outfiles(crop_type):
 
 def convert_management_outfiles(manage_type):
     """
-    Reads agr. dem. .OUT file, loads data into a 3D np array and saves it.
+    Reads management data .OUT files; saves the data in numpy .npy format.
+
+    Parameters
+    ----------
+    manage_type : str
+                  determines whether the demand files being read contain
+                  management factors, grazing intensities or harvest
+                  fractions.
     """
     # determine whether input is food, grass or bioenergy crop demand
     crop_attrs = {"MF": {"name": "MF.OUT",

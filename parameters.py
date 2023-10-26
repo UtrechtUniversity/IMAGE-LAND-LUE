@@ -17,6 +17,9 @@ NBC = 5
 # number of non-grass crop classes (food RF, biofuel and food IR)
 NFBFC = 37
 
+# number of crop classes (grass, food RF, biofuel and food IR)
+NGFBFC = 38
+
 # number of fodder (grass), food and biofuel crop classes
 NGFBC = 22
 
