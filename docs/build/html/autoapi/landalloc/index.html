@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>landalloc &mdash; ImageLCM 0.1 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/graphviz.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ImageLCM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">landalloc</span></code></a><ul>
+<li><a class="reference internal" href="#module-contents">Module Contents</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a><ul>
+<li><a class="reference internal" href="#landalloc.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.return_demand_rasters"><code class="docutils literal notranslate"><span class="pre">return_demand_rasters()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.return_demand_ratios"><code class="docutils literal notranslate"><span class="pre">return_demand_ratios()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.isolate_cropland"><code class="docutils literal notranslate"><span class="pre">isolate_cropland()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.get_irrigated_boolean"><code class="docutils literal notranslate"><span class="pre">get_irrigated_boolean()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.allocated_irrigated_land"><code class="docutils literal notranslate"><span class="pre">allocated_irrigated_land()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.reallocate_cropland_initial"><code class="docutils literal notranslate"><span class="pre">reallocate_cropland_initial()</span></code></a></li>
+<li><a class="reference internal" href="#landalloc.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ImageLCM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><code class="xref py py-mod docutils literal notranslate"><span class="pre">landalloc</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/autoapi/landalloc/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-landalloc">
+<span id="landalloc"></span><h1><a class="reference internal" href="#module-landalloc" title="landalloc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">landalloc</span></code></a><a class="headerlink" href="#module-landalloc" title="Link to this heading"></a></h1>
+<p>Calls the functions in read.py and allocates land.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>()</p></td>
+<td><p>Calls the read functions and computes regional Boolean rasters.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#landalloc.return_demand_rasters" title="landalloc.return_demand_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_demand_rasters</span></code></a>(demands, greg, r_bools, timestep)</p></td>
+<td><p>Puts the food and fodder demands onto a raster, by World Region.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#landalloc.return_demand_ratios" title="landalloc.return_demand_ratios"><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_demand_ratios</span></code></a>(demands, greg, r_bools, timestep)</p></td>
+<td><p>Puts the increase in food and fodder demand onto a raster, by region.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#landalloc.isolate_cropland" title="landalloc.isolate_cropland"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isolate_cropland</span></code></a>(input_rasters)</p></td>
+<td><p>Isolates existing cropland using land cover type raster.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#landalloc.get_irrigated_boolean" title="landalloc.get_irrigated_boolean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_irrigated_boolean</span></code></a>(input_rasters)</p></td>
+<td><p>Identifies cells in which there is irrigated cropland.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#landalloc.allocated_irrigated_land" title="landalloc.allocated_irrigated_land"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allocated_irrigated_land</span></code></a>()</p></td>
+<td><p>Allocates a fraction of rain-fed cropland to irrigated land.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#landalloc.reallocate_cropland_initial" title="landalloc.reallocate_cropland_initial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reallocate_cropland_initial</span></code></a>(input_rasters, ...[, timestep])</p></td>
+<td><p>Executes the first step of reallocating existing cropland.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#landalloc.main" title="landalloc.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<td><p>main function</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.setup">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.setup" title="Link to this definition"></a></dt>
+<dd><p>Calls the read functions and computes regional Boolean rasters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>input_rasters</strong> (<em>Dict</em>) – dict containing the same items as that returned by
+read_input_rasters</p></li>
+<li><p><strong>nonraster_inputs</strong> (<em>Dict</em>) – dict containing the same items as that returned by
+read_nonraster_inputs, with the addition of a list
+of Boolean rasters with values corresponding to
+each IMAGE World Region</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_input_rasters</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">read_nonraster_inputs</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.return_demand_rasters">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">return_demand_rasters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">demands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_bools</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.return_demand_rasters" title="Link to this definition"></a></dt>
+<dd><p>Puts the food and fodder demands onto a raster, by World Region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>demands</strong> (<em>np.ndarray</em>) – np array with shape (# timesteps, # G+F crops, # regions)</p></li>
+<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+<li><p><strong>timestep</strong> (<em>int</em>) – the current timestep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>demand_dict_t</strong> – dict containing a map of regional crop demands for
+every food crop and grass</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.return_demand_ratios">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">return_demand_ratios</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">demands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_bools</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.return_demand_ratios" title="Link to this definition"></a></dt>
+<dd><p>Puts the increase in food and fodder demand onto a raster, by region.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>demands</strong> (<em>np.ndarray</em>) – np array with shape (# timesteps, # G+F crops, # regions)</p></li>
+<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+<li><p><strong>timestep</strong> (<em>int</em>) – the current timestep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>demand_dict_t</strong> – dict containing a map of the fractional increase in
+regional crop demands for every food crop and grass,
+relative to the previous timestep</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.return_demand_rasters" title="landalloc.return_demand_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_demand_rasters</span></code></a>, <a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.isolate_cropland">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">isolate_cropland</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.isolate_cropland" title="Link to this definition"></a></dt>
+<dd><p>Isolates existing cropland using land cover type raster.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+read_input_rasters.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>new_rasters</strong> – dict containing the same items as input_rasters, with
+an added Boolean raster showing the extent of existing
+cropland, and a list of the rain-fed food and fodder crop
+fractions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_input_rasters</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.get_irrigated_boolean">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">get_irrigated_boolean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.get_irrigated_boolean" title="Link to this definition"></a></dt>
+<dd><p>Identifies cells in which there is irrigated cropland.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+read_input_rasters.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>new_rasters</strong> – dict containing the same items as input_rasters, with
+an added Boolean raster showing the extent of irrigated
+cropland.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.isolate_cropland" title="landalloc.isolate_cropland"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isolate_cropland</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">read_input_rasters</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.allocated_irrigated_land">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">allocated_irrigated_land</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.allocated_irrigated_land" title="Link to this definition"></a></dt>
+<dd><p>Allocates a fraction of rain-fed cropland to irrigated land.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.reallocate_cropland_initial">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">reallocate_cropland_initial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.reallocate_cropland_initial" title="Link to this definition"></a></dt>
+<dd><p>Executes the first step of reallocating existing cropland.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+read_input_rasters, with the addition of the crop
+demand increase rasters output by return_demand_ratios
+and the existing cropland rasters output by
+isolate_cropland.</p></li>
+<li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup.</p></li>
+<li><p><strong>timestep</strong> (<em>int</em><em>, </em><em>default=1</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>new_fractions</strong> – list containing rasters for each new crop fraction</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of lue data objects</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.main">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.main" title="Link to this definition"></a></dt>
+<dd><p>main function</p>
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Ben Romero-Wilcock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

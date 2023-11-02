@@ -17,16 +17,16 @@ def setup():
     -------
     input_rasters : Dict
                     dict containing the same items as that returned by
-                    read_input_rasters
+                    read.read_input_rasters
     nonraster_inputs : Dict
                        dict containing the same items as that returned by
-                       read_nonraster_inputs, with the addition of a list
-                       of Boolean rasters with values corresponding to
-                       each IMAGE World Region
+                       read.read_nonraster_inputs, with the addition of a
+                       list of Boolean rasters with values corresponding
+                       to each IMAGE World Region
 
     See Also
     --------
-    read_input_rasters
+    read.read_input_rasters
     read_nonraster_inputs
     """
 
@@ -149,7 +149,7 @@ def isolate_cropland(input_rasters):
 
     See Also
     --------
-    read_input_rasters                 
+    read.read_input_rasters                 
     """
     new_rasters = input_rasters
 
@@ -173,7 +173,7 @@ def get_irrigated_boolean(input_rasters):
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters.
+                    read.read_input_rasters.
 
     Returns
     -------
@@ -185,7 +185,7 @@ def get_irrigated_boolean(input_rasters):
     See Also
     --------
     isolate_cropland
-    read_input_rasters
+    read.read_input_rasters
     """
     new_rasters = input_rasters
 
@@ -253,7 +253,9 @@ def reallocate_cropland_initial(input_rasters, nonraster_inputs, timestep=1):
 def main():
     """main function"""
 
-    if not prm.STANDALONE: # pylint: disable=no-member
+    rd.check_wdir()
+
+    if not prm.STANDALONE:
         rd.prepare_input_files()
     rd.prepare_input_files()
 
@@ -261,6 +263,9 @@ def main():
     input_rasters, nonraster_inputs = setup()
     input_rasters = isolate_cropland(input_rasters)
     new_fracs = reallocate_cropland_initial(input_rasters, nonraster_inputs)
+
+    for array in new_fracs:
+        lfr.wait(array) # pylint: disable=no-member
 
     print(f"Time taken: {time()-start}")
 

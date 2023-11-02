@@ -2,11 +2,19 @@
 Read input files into the lue framework.
 """
 
+import os
 import numpy as np
 import lue.framework as lfr
 
 import parameters as prm
 import convert_outfiles as co
+
+def check_wdir():
+    """
+    Ensures that the current working directory is correct.
+    """
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 def prepare_input_files():
     """
