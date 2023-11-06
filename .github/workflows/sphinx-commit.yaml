@@ -1,6 +1,6 @@
 name: sphinx-commit
 run-name: sphinx is re-building the docs
-on: [commit]
+on: [push]
 jobs:
   check-bats-version:
     runs-on: ubuntu-latest
