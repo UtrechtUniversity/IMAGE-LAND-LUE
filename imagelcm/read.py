@@ -44,7 +44,7 @@ def read_raster(res, file_name, data_dir="data\\"):
     res : int or float
           resolution of the raster to be read in
     file_name : str
-                name of the raster file, inclusding the extension
+                name of the raster file, including the extension
     data_dir : str, default = 'data\\'
                relative path to the file
     

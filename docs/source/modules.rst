@@ -1,4 +1,4 @@
-imagelcm
+ImageLCM
 ========
 
 .. toctree::

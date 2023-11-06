@@ -8,6 +8,7 @@ import lue.framework as lfr
 
 import parameters as prm
 import read as rd
+import write as wt
 
 def setup():
     """
@@ -78,7 +79,7 @@ def return_demand_rasters(demands, greg, r_bools, timestep):
         for reg in range(26):
             local_d_t = d_t[crop, reg]
             # if in correct region, value in every cell is equal to the demand in that region
-            d_map_t = lfr.where(r_bools[reg], local_d_t, d_map_t) # pylint: disable=no-member
+            d_map_t = lfr.where(r_bools[reg], local_d_t, d_map_t)
 
         demand_dict_t[f"crop{crop}"] = d_map_t
 
@@ -123,7 +124,7 @@ def return_demand_ratios(demands, greg, r_bools, timestep):
         for reg in range(26):
             local_ratio = d_t[crop, reg] / d_tm1[crop, reg]
             # if in correct region, value in every cell is equal to the demand in that region
-            dr_t = lfr.where(r_bools[reg], local_ratio, dr_t) # pylint: disable=no-member
+            dr_t = lfr.where(r_bools[reg], local_ratio, dr_t)
 
         ratio_dict[f"crop{crop}"] = dr_t
 
@@ -159,7 +160,7 @@ def isolate_cropland(input_rasters):
     # isolate current cropland for every crop fraction
     cc_frs = []
     for crop in range(prm.NGFC):
-        cc_frs.append(lfr.where(is_cropland, input_rasters['f'][crop])) # pylint: disable=no-member
+        cc_frs.append(lfr.where(is_cropland, input_rasters['f'][crop]))
 
     new_rasters['current_cropland'] = cc_frs
 
@@ -265,7 +266,7 @@ def main():
     new_fracs = reallocate_cropland_initial(input_rasters, nonraster_inputs)
 
     for array in new_fracs:
-        lfr.wait(array) # pylint: disable=no-member
+        lfr.wait(array)
 
     print(f"Time taken: {time()-start}")
 

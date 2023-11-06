@@ -18,5 +18,6 @@
 
 # model output maps
 
-# data folder
+# data folders
 imagelcm/data/
+imagelcm/outputs/

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Land Cover Types &mdash; ImageLCM 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Food Crops" href="Food%20Crops.html" />
+    <link rel="prev" title="IMAGE-LAND Allocation and Formulae" href="IMAGE-LAND%20Allocation%20and%20Formulae.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ImageLCM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="markdown_index.html">Model Information</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Inputs.html">Inputs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="IMAGE-LAND%20Allocation%20and%20Formulae.html">IMAGE-LAND Allocation and Formulae</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Land Cover Types</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conversion">Conversion</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Food%20Crops.html">Food Crops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Grass.html">Grass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Management%20Factor.html">Management Factor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Function%20Request.html">Lue Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Legacy%20IMAGE-LAND.html">Legacy IMAGE-LAND</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">ImageLCM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Documentation%20Style.html">Documentation Style</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ImageLCM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="markdown_index.html">Model Information</a></li>
+      <li class="breadcrumb-item active">Land Cover Types</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/md_files/Land Cover Types.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="land-cover-types">
+<h1>Land Cover Types<a class="headerlink" href="#land-cover-types" title="Permalink to this heading"></a></h1>
+<p>IMAGE-LAND features 20 land cover types, namely:</p>
+<ol class="arabic simple">
+<li><p>Agricultural land</p></li>
+<li><p>Extensive grassland</p></li>
+<li><p>Carbon plantation</p></li>
+<li><p>Regrowth forest (abandoning)</p></li>
+<li><p>Regrowth forest (timber)</p></li>
+<li><p>Biofuels</p></li>
+<li><p>Ice</p></li>
+<li><p>Tundra</p></li>
+<li><p>Wooded tundra</p></li>
+<li><p>Boreal forest</p></li>
+<li><p>Cool conifer forest</p></li>
+<li><p>Temp. mixed forest</p></li>
+<li><p>Temp. decid. forest</p></li>
+<li><p>Warm mixed forest</p></li>
+<li><p>Grassland/steppe</p></li>
+<li><p>Hot desert</p></li>
+<li><p>Scrubland</p></li>
+<li><p>Savanna</p></li>
+<li><p>Tropical woodland</p></li>
+<li><p>Tropical forest.
+Extensive grassland is the land cover type allocated to agricultural land which has fallen below a threshold of productivity (WHICH VALUE?).</p></li>
+</ol>
+<section id="conversion">
+<h2>Conversion<a class="headerlink" href="#conversion" title="Permalink to this heading"></a></h2>
+<p>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="IMAGE-LAND%20Allocation%20and%20Formulae.html" class="btn btn-neutral float-left" title="IMAGE-LAND Allocation and Formulae" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Food%20Crops.html" class="btn btn-neutral float-right" title="Food Crops" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Ben Romero-Wilcock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

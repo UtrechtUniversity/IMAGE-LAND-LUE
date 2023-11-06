@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMAGE-LAND Allocation and Formulae &mdash; ImageLCM 0.1 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Land Cover Types" href="Land%20Cover%20Types.html" />
+    <link rel="prev" title="Inputs" href="Inputs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            ImageLCM
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="markdown_index.html">General Model Information</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Inputs.html">Inputs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">IMAGE-LAND Allocation and Formulae</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Land%20Cover%20Types.html">Land Cover Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Food%20Crops.html">Food Crops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Grass.html">Grass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Management%20Factor.html">Management Factor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Function%20Request.html">Lue Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Legacy%20IMAGE-LAND.html">Legacy IMAGE-LAND</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">ImageLCM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Documentation%20Style.html">Documentation Style</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">ImageLCM</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="markdown_index.html">General Model Information</a></li>
+      <li class="breadcrumb-item active">IMAGE-LAND Allocation and Formulae</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/md_files/IMAGE-LAND Allocation and Formulae.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section class="tex2jax_ignore mathjax_ignore" id="image-land-allocation-and-formulae">
+<h1>IMAGE-LAND Allocation and Formulae<a class="headerlink" href="#image-land-allocation-and-formulae" title="Permalink to this heading"></a></h1>
+<p>This page briefly describes the allocation of land to food crops and grassland in IMAGE-LAND, detailing the equations used to calculate the fractions at each stage. The specifics of biofuel crops and timber production in IMAGE-LAND are omitted from this description.</p>
+<p>The IMAGE-LAND grid is made up of cells with a side length of 5 arc-minutes, resulting in a 4320 by 2160 cell map. Each of these cells comprises 16 fractions, 1 for each food crop, alongside other fractions which are not explicitly considered for the time being. IMAGE-Land features 20 <a href='Land Cover Types.html'>Land Cover Types</a>, the first two of which are agricultural land - also referred to as cropland - and extensive grassland. Extensive grassland is the land cover type allocated to agricultural land which has fallen below a threshold of productivity (WHICH VALUE?).</p>
+<p>Cells with non-cropland land-cover types are made up entirely of crop fractions of 0, with the exception of extensive grassland, which is a special case where cropland is so low productivity that it has been recategorised. Within cropland, each cell is allocated entirely to food crops and grassland.</p>
+<p>For a given crop, <span class="math notranslate nohighlight">\(c\)</span>, allocated to a fraction <span class="math notranslate nohighlight">\(f_c\)</span> of a cell, the (potential) yield, <span class="math notranslate nohighlight">\(y_c\)</span>, of crop <span class="math notranslate nohighlight">\(c\)</span> in that cell is given by</p>
+<div class="math notranslate nohighlight">
+\[y_c = f_c\times p_c\times M_c\times A\times FH_c\times MF_c, \tag{1}\]</div>
+<p>where <span class="math notranslate nohighlight">\(M_c\)</span> is the maximum potential productivity of each crop and <span class="math notranslate nohighlight">\(p_c\)</span> (grmppc in the code) is the grid-reduced potential productivity as a fraction of <span class="math notranslate nohighlight">\(M_c\)</span>. <span class="math notranslate nohighlight">\(A\)</span> is the area of the cell, <span class="math notranslate nohighlight">\(FH_c\)</span> is the fraction of the planted crop that is harvested in a given timestep and <span class="math notranslate nohighlight">\(MF_c\)</span> is the management factor.</p>
+<p>Each timestep, <span class="math notranslate nohighlight">\(t\)</span>, for each of the 26 world regions, IMAGE-LAND reads in the new demands for each crop and allocates grid cells in the order of a single suitability map, from the cells with the highest suitability to those with the lowest. IMAGE-LAND begins the allocation process by isolating the existing cropland areas and reallocating them. To respond to the change in demand for each crop, the fractions of each grid cell allocated to each crop are recalculated, taking into account their values in the previous timestep, <span class="math notranslate nohighlight">\(t-1\)</span>. This process uses two quantities, <span class="math notranslate nohighlight">\(cf_1\)</span> and <span class="math notranslate nohighlight">\(cf_3\)</span> (<span class="math notranslate nohighlight">\(cf_2\)</span> also exists but is not really relevant):</p>
+<div class="math notranslate nohighlight">
+\[cf_1 = f_{0, t-1}\frac{d_{0, t}}{GI\times d_{0, t-1}} + \sum\limits_{c} f_{c, t-1}\frac{d_{c, t}}{d_{c, t-1}MF_c},\tag{2}\]</div>
+<p>where <span class="math notranslate nohighlight">\(GI\)</span> is the grazing intensity and <span class="math notranslate nohighlight">\(d\)</span> is the demand, and</p>
+<div class="math notranslate nohighlight">
+\[
+    cf_3 = f_{0, t-1} + \sum\limits_{c} f_{c, t-1}.\tag{3}
+\]</div>
+<p>Once these quantities have been obtained, the non-grass crops are looped through again, so that the fractions allocated to each of them can be computed, following</p>
+<div class="math notranslate nohighlight">
+\[
+    f_{c, t} = f_{c, t-1}MF_c\frac{d_{c, t}}{d_{c, t-1}}\frac{cf_3}{cf_1}.\tag{4}
+\]</div>
+<p>If the sum of all crop fractions, <span class="math notranslate nohighlight">\(F_{c, t}&lt;1\)</span>, then the remainder of the cell is allocated to grass. The reallocation of existing cropland leads to <strong>one</strong> of 3 broad outcomes:</p>
+<ol class="arabic simple">
+<li><p>The demand for every crop is met before all existing cropland is reallocated.</p></li>
+<li><p>The demand for every crop is met when all existing cropland is reallocated.</p></li>
+<li><p>The demand for at least some crops is not yet met when all existing cropland is reallocated.</p></li>
+</ol>
+<p>In the case of outcome 1, the fractions of each crop type allocated to the remaining cropland once demand has been met should be 0. This corresponds to the abandoning of agricultural land where it is no longer needed. Importantly, however, there is a subtlety to outcome 1, as well as the other outcomes. In fact, outcome 1 can describe 2 situations:</p>
+<ol type="a">
+  <li>The demand for each and every crop is met at the same time (when the same cell is reached).</li>
+  <li>The demand for some crops is met before others.</li>
+</ol>
+<p>Under outcome 1(a) - a less likely outcome than 1(b) - the reallocation process is relatively simple: every crop fraction is allocated according to eq. (4) until demand is met, then the fractions in the remaining cropland cells are all set to 0. To address outcome 1(b), however, there is an important subtlety in IMAGE-LAND. All cropland cells have their crop fractions recalculated, regardless of whether demand is met. They are then looped through a second time, in order of suitability, to determine when demand is met for each crop and re-work the new cell fractions accordingly. Under outcome 1(b), once demand for some crops has been met, the fraction of land allocated to those crops in subsequent cells is 0. Accordingly, a new fraction of those cells, <span class="math notranslate nohighlight">\(f_r\)</span>, is freed up for the crops for which demand has not yet been met. This is achieved with the help of a new quantity,
+labelled <code class="docutils literal notranslate"><span class="pre">sdempr</span></code>, here named SDP. It is defined</p>
+<div class="math notranslate nohighlight">
+\[
+    SDP = 1000p_0\frac{d_{0, t} - Y_0}{M_0} + \sum\limits_{c}1000p_c\frac{d_{c, t} - Y_c}{M_c}, \tag{5}
+    
+\]</div>
+<p>where the factors of 1000 regard converting tonnes to kg. <span class="math notranslate nohighlight">\(Y_c\)</span> is the integrated potential yield over all cells already looped over. SDP can be thought of as the sum of the product of remaining crop and grass demands with the relative potential productivity of the grid cell currently being considered. Once SDP has been computed, non-grass crops are again looped through so that <span class="math notranslate nohighlight">\(f_r\)</span> can be allocated to the different crops, whereby each crop’s fraction in the cell increases, according to</p>
+<div class="math notranslate nohighlight">
+\[
+    f_{c, t} = f_{c, t} + MIN\left[f_r\times\frac{1000p_c\left(d_c - Y_c\right)}{M_c\times SDP}, 1-\sum\limits_{cc=1}^{cc=c}\left[f_r\times\frac{1000p_{cc}\left(d_{cc} - Y_{cc}\right)}{M_{cc}\times SDP}\right]\right]. \tag{6}
+\]</div>
+<p>This process of fraction adjustment is carried out until either demand is met (outcome 1(b)) or, in the case of outcomes 2 and 3, existing cropland is filled. Note that, in the case of outcome 1, those cells in which all new fractions are 0 (cells that will be abandoned) change land cover type to regrowth forest (abandoning).</p>
+<p>As with outcome 1, outcome 2 can describe 2 situations:</p>
+<ol type="a">
+    <li> The demand for each and every crop is only met when the last cell in existing cropland is allocated. </li>
+    <li> The demand for some crops is met before others, with demand for the last crop(s) only being met when all existing cropland is allocated.</li>
+</ol>
+<p>These are very similar to outcomes 1(a) and 1(b), with the difference that no cropland cells end up with 0 fractions for all crops: no agricultural land needs to be abandoned.</p>
+<p>Outcome 3 contains 3 possibilities:</p>
+<ol type="a">
+    <li>The demand for none of the crops is met when all existing cropland has been reallocated.</li>
+    <li> The demand for some crops is met exactly when all existing cropland is allocated, with some unmet demand for other crops.</li>
+   <li> The demand for some, but not all crops is met before existing cropland is reallocated, with unmet demand for other crops.</li>
+</ol>
+<p>Outcomes 3 (a), (b) and (c) all require an expansion of cropland. In the case of outcomes 3 (b) and (c), cropland only needs to be expanded for some crops. In the case of outcome 3(c), the fractions allocated to some crops are already 0 for some of the existing cropland.</p>
+<p>The equation for determining the fractions in new cropland is the same as that used to find the additional fractions in existing cropland when the remainder of the cell had to be filled: SDP is first computed, then</p>
+<div class="math notranslate nohighlight">
+\[
+    f_{c, t} =  MIN\left[\frac{1000p_c\left(d_c - Y_c\right)}{M_c\times SDP}, 1-\sum\limits_{cc=1}^{cc=c}\left[\frac{1000p_{cc}\left(d_{cc} - Y_{cc}\right)}{M_{cc}\times SDP}\right]\right].\tag{7}
+\]</div>
+<p>The potential yield is then calculated for that crop in that cell, according to equation (\ref{eq:yield}). If the additional potential yield of a given crop’s fraction of a given cell leads to total potential yield surpassing demand, then the fraction is recomputed, following</p>
+<div class="math notranslate nohighlight">
+\[
+    f_{c, t} = \frac{d_{c}-Y_c}{p_c\times M_c \times A\times FH_c \times MF_c}.\tag{8}
+\]</div>
+<p>where <span class="math notranslate nohighlight">\(r_c\)</span> is the remaining demand. Note that when not all crops require allocation to new cropland (outcomes 3(b) and 3(c)), the remaining demand for those crops will be 0, so they are automatically removed from consideration by eq. 8. For each new cell, the remaining demand for a given crop is calculated by taking the remaining demand for that crop when the previous cell was allocated and subtracting the potential yield from that cell, using eq. 1.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Inputs.html" class="btn btn-neutral float-left" title="Inputs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Land%20Cover%20Types.html" class="btn btn-neutral float-right" title="Land Cover Types" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Ben Romero-Wilcock.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

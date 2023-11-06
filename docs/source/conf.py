@@ -26,9 +26,18 @@ release = '0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.napoleon', "sphinx.ext.autodoc", 'sphinx_rtd_theme']
+extensions = ['sphinx.ext.napoleon',
+              "sphinx.ext.autodoc",
+              'sphinx_rtd_theme',
+              'myst_parser']
 # extensions = ['sphinx.ext.napoleon', "autoapi.extension", 'sphinx_rtd_theme']
 # autoapi_dirs = ['../../imagelcm']
+
+myst_enable_extensions = [
+    "amsmath",
+    "dollarmath",
+    "linkify"
+]
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -39,6 +48,10 @@ exclude_patterns = []
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+# html_theme = 'alabaster'
 html_static_path = ['_static']
+
+# html_theme_options = {'style_nav_header_background': '#f759ea'}
+html_theme_options = {'style_external_links': True}
 
 napoleon_use_param = True

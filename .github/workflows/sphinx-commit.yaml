@@ -1,0 +1,15 @@
+name: sphinx-commit
+run-name: sphinx is re-building the docs
+on: [commit]
+jobs:
+  check-bats-version:
+    runs-on: ubuntu-latest
+    steps:
+      # check out sources that will be used for autodocs, plus readme
+      - uses: actions/checkout@v1
+
+      # builds docs
+      - name: Building documentation
+        run: |
+          cd docs
+          sphinx-build -b html source build
