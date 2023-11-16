@@ -10,6 +10,9 @@ import sphinx_rtd_theme
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 import os
 import sys
+
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../../imagelcm'))
 sys.path.insert(0, os.path.abspath('C:\\Users\\2331764\\AppData\\Local\\anaconda3\\pkgs\\lue-0.3.7-py311h30d3044_1\\Lib\\site-packages\\lue'))

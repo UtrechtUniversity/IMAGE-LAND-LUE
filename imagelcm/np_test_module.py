@@ -2,11 +2,17 @@
 Generates test outputs using a combination of numpy and vanilla Python 
 to ensure that the LUE integration and allocation functions are
 functioning properly.
+
+NB: grazing intensities and management factors, as well as harvest
+fractions are omitted in this test, as they are all constants and so do
+not affect the behaviour of the functions as such.
 """
 
 import numpy as np
 from math import ceil
-import parameters as prm
+# import parameters as prm
+
+from read import check_wdir
 
 def write_inputs(shape=(10, 20), nr=1, nc=3):
     """
@@ -54,14 +60,16 @@ def write_inputs(shape=(10, 20), nr=1, nc=3):
     demands[0, :, :] = regional_prods
     demands[1, :, :] = np.random.normal(loc=1.1, scale=0.2, size=(nr, nc+1)) * demands[0, :, :]
 
+    check_wdir()
+
     # save input files
-    np.save("test_IO\\suitmap", suit_map)
-    np.save("test_IO\\is_land", is_land)
-    np.save("test_IO\\is_cropland", is_cropland)
-    np.save("test_IO\\regions", regs)
-    np.save("test_IO\\g_area", grid_area)
-    np.save("test_IO\\initial_fractions", fractions)
-    np.save("test_IO\\demands", demands)
+    np.save(f"test_IO\\suitmap_{nr}_{nc}", suit_map)
+    np.save(f"test_IO\\is_land_{nr}_{nc}", is_land)
+    np.save(f"test_IO\\is_cropland_{nr}_{nc}", is_cropland)
+    np.save(f"test_IO\\regions_{nr}_{nc}", regs)
+    np.save(f"test_IO\\g_area_{nr}_{nc}", grid_area)
+    np.save(f"test_IO\\initial_fractions_{nr}_{nc}", fractions)
+    np.save(f"test_IO\\demands_{nr}_{nc}", demands)
 
 def generate_fractions(shape, is_cropland, nc):
     """
@@ -143,6 +151,47 @@ def write_regs(shape, is_land, nr, a_r):
     regs[~is_land] = 0
 
     return regs
+
+def np_first_reallocation(shape=(10, 20), nr=1, nc=3):
+    """
+    Performs first step of reallocating existing cropland; saves result.
+    
+    Parameters
+    ----------
+    shape : tuple of ints, default = (10, 20)
+            desired shape of the array, with orientation
+            (longitude, latitude)
+    nr : int
+         number of regions (stand-ins for IMAGE world-regions)
+    nc : int
+         number of crops (not including grass)
+    """
+
+    # suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}")
+    # is_land = np.load(f"test_IO\\is_land_{nr}_{nc}")
+    # is_cropland = np.load(f"test_IO\\is_cropland_{nr}_{nc}")
+    regs = np.load(f"test_IO\\regions_{nr}_{nc}")
+    # grid_area = np.load(f"test_IO\\g_area_{nr}_{nc}")
+    fractions = np.load(f"test_IO\\initial_fractions_{nr}_{nc}")
+    demands = np.load(f"test_IO\\demands_{nr}_{nc}")
+
+    # calculate ratio of last demand to this timestep's demand
+    demand_ratios = demands[1, :, :] / demands[0, :, :]
+
+    # calculate cf1 and cf2
+    cf1 = np.zeros(shape)
+    cf3 = np.zeros(shape)
+    for reg in range(1, nr+1):
+        for crop in range(1, nc+1):
+            cf1[regs==reg] += fractions[crop, :, :][regs==reg] * demand_ratios[reg, crop]
+            cf3[regs==reg] += fractions[crop, :, :]
+
+    new_fractions = np.zeros_like(fractions)
+    for crop in range(1, nc+1):
+        new_fractions[crop] = fractions[crop] * demand_ratios[f'crop{crop}'] * cf3 / cf1
+
+# def return_npdemand_map(demand_ratios):
+#     """"""
 
 
 
