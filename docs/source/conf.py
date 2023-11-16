@@ -11,7 +11,10 @@ import sphinx_rtd_theme
 import os
 import sys
 
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+print("#################")
+print(os.listdir('../../imagelcm'))
+print("#################")
 
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../../imagelcm'))

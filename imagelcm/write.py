@@ -3,8 +3,6 @@ Write output files from lue framework to netcdfs.
 """
 import xarray as xr
 import lue.framework as lfr
-import parameters as prm
-
 
 def write_raster(raster, var_name, output_dir='output\\'):
     """

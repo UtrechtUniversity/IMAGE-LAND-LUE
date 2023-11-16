@@ -8,3 +8,5 @@ ImageLCM
    landalloc
    parameters
    read
+   write
+   np_test_module

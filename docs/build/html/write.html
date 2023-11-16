@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>convert_outfiles module &mdash; ImageLCM 0.1 documentation</title>
+  <title>write module &mdash; ImageLCM 0.1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="landalloc module" href="landalloc.html" />
-    <link rel="prev" title="ImageLCM" href="modules.html" /> 
+    <link rel="next" title="Documentation Style" href="md_files/Documentation%20Style.html" />
+    <link rel="prev" title="read module" href="read.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,10 +46,11 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="md_files/markdown_index.html">General Model Information</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">ImageLCM</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">convert_outfiles module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convert_outfiles.html">convert_outfiles module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html">landalloc module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="parameters.html">parameters module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="read.html">read module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">write module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="md_files/Documentation%20Style.html">Documentation Style</a></li>
@@ -70,9 +71,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="modules.html">ImageLCM</a></li>
-      <li class="breadcrumb-item active">convert_outfiles module</li>
+      <li class="breadcrumb-item active">write module</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/convert_outfiles.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/write.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -80,30 +81,34 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-convert_outfiles">
-<span id="convert-outfiles-module"></span><h1>convert_outfiles module<a class="headerlink" href="#module-convert_outfiles" title="Permalink to this heading"></a></h1>
-<p>Converts agrprod.out files.</p>
+  <section id="module-write">
+<span id="write-module"></span><h1>write module<a class="headerlink" href="#module-write" title="Permalink to this heading"></a></h1>
+<p>Write output files from lue framework to netcdfs.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="convert_outfiles.convert_crop_outfiles">
-<span class="sig-prename descclassname"><span class="pre">convert_outfiles.</span></span><span class="sig-name descname"><span class="pre">convert_crop_outfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#convert_outfiles.convert_crop_outfiles" title="Permalink to this definition"></a></dt>
-<dd><p>Reads agr. dem. .OUT files and saves the data in numpy .npy format.</p>
+<dt class="sig sig-object py" id="write.check_format">
+<span class="sig-prename descclassname"><span class="pre">write.</span></span><span class="sig-name descname"><span class="pre">check_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output\\'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#write.check_format" title="Permalink to this definition"></a></dt>
+<dd><p>Checks that a netcdf file is in the right format.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>crop_type</strong> (<em>str</em>) – determines whether the demand files being read contain
-food crop, fodder or bioenergy crop data.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>var_name</strong> (<em>str</em>) – name of the .nc file, excluding the extension</p></li>
+<li><p><strong>data_dir</strong> (<em>str</em><em>, </em><em>default = 'output'</em>) – relative path to the file</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="convert_outfiles.convert_management_outfiles">
-<span class="sig-prename descclassname"><span class="pre">convert_outfiles.</span></span><span class="sig-name descname"><span class="pre">convert_management_outfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manage_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#convert_outfiles.convert_management_outfiles" title="Permalink to this definition"></a></dt>
-<dd><p>Reads management data .OUT files; saves the data in numpy .npy format.</p>
+<dt class="sig sig-object py" id="write.write_raster">
+<span class="sig-prename descclassname"><span class="pre">write.</span></span><span class="sig-name descname"><span class="pre">write_raster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raster</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output\\'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#write.write_raster" title="Permalink to this definition"></a></dt>
+<dd><p>Writes rasters from LUE into netcdf format.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>manage_type</strong> (<em>str</em>) – determines whether the demand files being read contain
-management factors, grazing intensities or harvest
-fractions.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>raster</strong> (<em>LUE data object</em>) – the raster to be written to disk</p></li>
+<li><p><strong>var_name</strong> (<em>str</em>) – name of the desired .nc file, excluding the extension</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em><em>, </em><em>default = 'output'</em>) – relative path to the file</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -114,8 +119,8 @@ fractions.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="modules.html" class="btn btn-neutral float-left" title="ImageLCM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="landalloc.html" class="btn btn-neutral float-right" title="landalloc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="read.html" class="btn btn-neutral float-left" title="read module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="md_files/Documentation%20Style.html" class="btn btn-neutral float-right" title="Documentation Style" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
