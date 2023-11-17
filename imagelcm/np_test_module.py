@@ -33,6 +33,9 @@ def write_inputs(shape=(10, 20), nr=1, nc=3):
     is_land = np.random.uniform(size=shape) > 0.5
     is_cropland = np.logical_and(np.random.uniform(size=shape)>0.6, is_land)
 
+    # make sure suitability of non-land (water) cells is 0
+    suit_map[~is_land] = 0
+
     # find array's aspect ratio
     a_r = np.asarray(shape) / np.gcd(*shape)
 
@@ -63,13 +66,14 @@ def write_inputs(shape=(10, 20), nr=1, nc=3):
     check_wdir()
 
     # save input files
-    np.save(f"test_IO\\suitmap_{nr}_{nc}", suit_map)
-    np.save(f"test_IO\\is_land_{nr}_{nc}", is_land)
-    np.save(f"test_IO\\is_cropland_{nr}_{nc}", is_cropland)
-    np.save(f"test_IO\\regions_{nr}_{nc}", regs)
-    np.save(f"test_IO\\g_area_{nr}_{nc}", grid_area)
-    np.save(f"test_IO\\initial_fractions_{nr}_{nc}", fractions)
-    np.save(f"test_IO\\demands_{nr}_{nc}", demands)
+    np.save(f"test_IO\\suitmap_{nr}_{nc}_{shape}", suit_map)
+    np.save(f"test_IO\\is_land_{nr}_{nc}_{shape}", is_land)
+    np.save(f"test_IO\\is_cropland_{nr}_{nc}_{shape}", is_cropland)
+    np.save(f"test_IO\\regions_{nr}_{nc}_{shape}", regs)
+    np.save(f"test_IO\\g_area_{nr}_{nc}_{shape}", grid_area)
+    np.save(f"test_IO\\initial_fractions_{nr}_{nc}_{shape}", fractions)
+    np.save(f"test_IO\\demands_{nr}_{nc}_{shape}", demands)
+    np.save(f"test_IO\\potprod_{nr}_{nc}_{shape}", potential_prod)
 
 def generate_fractions(shape, is_cropland, nc):
     """
@@ -161,38 +165,147 @@ def np_first_reallocation(shape=(10, 20), nr=1, nc=3):
     shape : tuple of ints, default = (10, 20)
             desired shape of the array, with orientation
             (longitude, latitude)
-    nr : int
+    nr : int, default = 1
          number of regions (stand-ins for IMAGE world-regions)
-    nc : int
+    nc : int, default = 3
          number of crops (not including grass)
     """
 
-    # suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}")
-    # is_land = np.load(f"test_IO\\is_land_{nr}_{nc}")
-    # is_cropland = np.load(f"test_IO\\is_cropland_{nr}_{nc}")
-    regs = np.load(f"test_IO\\regions_{nr}_{nc}")
-    # grid_area = np.load(f"test_IO\\g_area_{nr}_{nc}")
-    fractions = np.load(f"test_IO\\initial_fractions_{nr}_{nc}")
-    demands = np.load(f"test_IO\\demands_{nr}_{nc}")
+    check_wdir()
+
+    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
+    fractions = np.load(f"test_IO\\initial_fractions_{nr}_{nc}_{shape}.npy")
+    demands = np.load(f"test_IO\\demands_{nr}_{nc}_{shape}.npy")
 
     # calculate ratio of last demand to this timestep's demand
     demand_ratios = demands[1, :, :] / demands[0, :, :]
 
-    # calculate cf1 and cf2
-    cf1 = np.zeros(shape)
-    cf3 = np.zeros(shape)
-    for reg in range(1, nr+1):
-        for crop in range(1, nc+1):
-            cf1[regs==reg] += fractions[crop, :, :][regs==reg] * demand_ratios[reg, crop]
-            cf3[regs==reg] += fractions[crop, :, :]
+    # generate demand map
+    demand_maps = return_npdemand_map(demand_ratios, regs, nr, nc)
 
+    # calculate cf1 and cf2 and ensure zeros become nan values
+    cf1 = np.sum(fractions * demand_maps, axis=0)
+    cf3 = np.sum(fractions, axis=0)
+    cf1[cf1==0] = np.nan
+    cf3[cf3==0] = np.nan
+
+    # compute new fractions from cf1 and cf3
     new_fractions = np.zeros_like(fractions)
-    for crop in range(1, nc+1):
-        new_fractions[crop] = fractions[crop] * demand_ratios[f'crop{crop}'] * cf3 / cf1
+    new_fractions[1:] = (fractions[1:] * demand_maps[1, :]
+                         * np.stack([(cf3 / cf1) for _ in range(nc)], axis=0))
 
-# def return_npdemand_map(demand_ratios):
-#     """"""
+    # turn nan values back to zeros
+    np.nan_to_num(new_fractions, copy=False, nan=0.0)
 
+    # fill in the remainder with grass
+    new_fractions[0] = 1 - np.sum(new_fractions[1:], axis=0)
 
+    np.save(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}", new_fractions)
+
+def return_npdemand_map(demand_ratios, regs, nr=1, nc=3):
+    """
+    Puts demand ratios onto a 2D array, by region.
+    
+    Parameters
+    ----------
+    demand_ratios : np.ndarray
+                    np array with shape (#regions, #crops+grass)
+    regs : np.ndarray
+           2D array of ints showing the region each array entry is in
+    nr : int, default = 1
+         number of regions (stand-ins for IMAGE world-regions)
+    nc : int, default=3
+         number of crops (not including grass)
+    
+    Returns
+    -------
+    demand_maps : np.ndarray
+                  np array of shape (#crops+grass, #lat, #lon), containing
+                  the ratio in demands for each cell (same value for all
+                  cells in a given region)
+    """
+
+    shape = regs.shape
+    demand_maps = np.zeros((nc+1, shape[0], shape[1]))
+    for crop in range(nc+1):
+        for reg in range(1, nr+1):
+            demand_maps[crop][regs==reg] = demand_ratios[reg-1, crop]
+
+    np.save(f"test_IO\\demand_maps_{nr}_{nc}_{shape}", demand_maps)
+
+    return demand_maps
+
+def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
+    """
+    Integrates fractions returned by the first reallocation of cropland
+
+    Parameters
+    ----------
+    shape : tuple of ints, default = (10, 20)
+            desired shape of the array, with orientation
+            (longitude, latitude)
+    nr : int, default = 1
+         number of regions (stand-ins for IMAGE world-regions)
+    nc : int, default = 3
+         number of crops (not including grass)
+    """
+
+    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
+    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
+    suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}_{shape}.npy")
+    demand_maps = np.load(f"test_IO\\demand_maps_{nr}_{nc}_{shape}.npy")
+
+    # flatten arrays so they can be sorted
+    fracs_flat = np.zeros((nc+1, shape[0]*shape[1]))
+    for crop in range(nc+1):
+        fracs_flat[crop, :] = fracs_r1[crop, :, :].flatten()
+    regs_flat = regs.flatten()
+    suitmap_flat = suit_map.flatten()
+
+    # indices, in order of declining suitability
+    sorted_args = np.argsort(suitmap_flat)[::-1]
+
+    # loop through cells, from low suitability to high
+    regional_prod = np.zeros((nr, nc+1))
+    integrated_yields = np.zeros_like(fracs_flat)
+    for ind in sorted_args:
+        reg = int(regs_flat[ind])
+        # if in valid region
+        if reg>0:
+            regional_prod[reg-1, :] += fracs_flat[:, ind]
+            integrated_yields[:, ind] = regional_prod[reg-1, :]
+
+    # somehow turn 1D arrays back into 2D ones
+    integrated_maps = np.zeros((nc+1, shape[0], shape[1]))
+    for crop in range(nc+1):
+        integrated_maps[crop] = np.reshape(integrated_yields[crop], shape)
+
+    # compute Boolean demands_met maps
+    demands_met = integrated_maps < np.stack([demand_maps for _ in range(nc+1)])
+
+    # still need to change values for yields > demands so it gives the same output as LUE function
+
+    np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
+    np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
+
+def compute_sdp(shape=(10, 20), nr=1, nc=3):
+    """
+    Calculates SDP quantity (sdempr in OG code)
+
+    Parameters
+    ----------
+    shape : tuple of ints, default = (10, 20)
+            desired shape of the array, with orientation
+            (longitude, latitude)
+    nr : int, default = 1
+         number of regions (stand-ins for IMAGE world-regions)
+    nc : int, default = 3
+         number of crops (not including grass)   
+    """
+
+    pot_prod = np.load(f"test_IO\\potprod_{nr}_{nc}_{shape}.npy")
+    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
 
 write_inputs(nr=2)
+np_first_reallocation(nr=2)
+integrate_r1_fractions(nr=2)
