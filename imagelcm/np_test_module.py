@@ -235,6 +235,29 @@ def return_npdemand_map(demand_ratios, regs, nr=1, nc=3):
 
     return demand_maps
 
+def find_sorted_indices(suit_map):
+    """
+    Finds indices to sort flattened arrays by suitability in desc. order
+
+    Parameters
+    ----------
+    suit_map : np.ndarray
+               2D np array containing the suitabilities for each cell
+
+    Returns
+    -------
+    sorted_args : np.ndarray
+                  1D np array with containing the indices for the
+                  suitability-sorted arrays
+    """
+
+    suitmap_flat = suit_map.flatten()
+
+    # indices, in order of declining suitability
+    sorted_args = np.argsort(suitmap_flat)[::-1]
+
+    return sorted_args
+
 def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
     """
     Integrates fractions returned by the first reallocation of cropland
@@ -260,15 +283,14 @@ def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
     for crop in range(nc+1):
         fracs_flat[crop, :] = fracs_r1[crop, :, :].flatten()
     regs_flat = regs.flatten()
-    suitmap_flat = suit_map.flatten()
 
     # indices, in order of declining suitability
-    sorted_args = np.argsort(suitmap_flat)[::-1]
+    sorted_inds = find_sorted_indices(suit_map)
 
     # loop through cells, from low suitability to high
     regional_prod = np.zeros((nr, nc+1))
     integrated_yields = np.zeros_like(fracs_flat)
-    for ind in sorted_args:
+    for ind in sorted_inds:
         reg = int(regs_flat[ind])
         # if in valid region
         if reg>0:
@@ -287,6 +309,7 @@ def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
 
     np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
     np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
+    np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
 
 def compute_sdp(shape=(10, 20), nr=1, nc=3):
     """
@@ -305,7 +328,35 @@ def compute_sdp(shape=(10, 20), nr=1, nc=3):
 
     pot_prod = np.load(f"test_IO\\potprod_{nr}_{nc}_{shape}.npy")
     fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
+    reg_prod = np.load(f"test_IO\\regional_prods_{nr}_{nc}_{shape}.npy")
+    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
+    suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}_{shape}.npy")
+    # integrated_maps = np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}.npy")
+    demand_maps = np.load(f"test_IO\\demand_maps_{nr}_{nc}_{shape}.npy")
+
+    # indices, in order of declining suitability
+    sorted_inds = find_sorted_indices(suit_map)
+
+    # flatten some arrays
+    regs_flat = regs.flatten()
+    fracs_flat = np.stack([fracs_r1[crop].flatten for crop in range(nc+1)], axis=0)
+    dems_flat = np.stack([demand_maps[crop].flatten for crop in range(nc+1)], axis=0)
+    pot_prods_flat = np.stack([pot_prod[crop].flatten for crop in range(nc+1)], axis=0)
+
+    # find ind where cropland ends
+    start_ind = 100
+
+    # loop through cells, from low suitability to high
+    sdp = np.zeros_like(regs_flat)
+    for ind in sorted_inds[start_ind:]:
+        reg = int(regs_flat[ind])
+        # if in valid region
+        if reg>0:
+            reg_prod[reg-1, :] += fracs_flat[:, ind]
+            sdp[ind] = ((dems_flat[:, ind]-reg_prod[reg-1, :]) * pot_prods_flat[:, ind]).sum()
+
 
 write_inputs(nr=2)
 np_first_reallocation(nr=2)
 integrate_r1_fractions(nr=2)
+compute_sdp(nr=2)
