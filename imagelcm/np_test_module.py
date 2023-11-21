@@ -8,8 +8,8 @@ fractions are omitted in this test, as they are all constants and so do
 not affect the behaviour of the functions as such.
 """
 
-import numpy as np
 from math import ceil
+import numpy as np
 # import parameters as prm
 
 from read import check_wdir
@@ -303,13 +303,42 @@ def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
         integrated_maps[crop] = np.reshape(integrated_yields[crop], shape)
 
     # compute Boolean demands_met maps
-    demands_met = integrated_maps < np.stack([demand_maps for _ in range(nc+1)])
+    demands_met = integrated_maps < demand_maps
 
     # still need to change values for yields > demands so it gives the same output as LUE function
 
     np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
     np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
     np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
+
+def rework_reallocation(shape=(10, 20), nr=1, nc=3):
+    """
+    Delete reallocated fractions where demand is surpassed.
+
+    Parameters
+    ----------
+    shape : tuple of ints, default = (10, 20)
+            desired shape of the array, with orientation
+            (longitude, latitude)
+    nr : int, default = 1
+         number of regions (stand-ins for IMAGE world-regions)
+    nc : int, default = 3
+         number of crops (not including grass)   
+    """
+
+    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
+    demands_met = np.load(f"test_IO\\demands_met_{nr}_{nc}_{shape}.npy")
+    is_cropland = np.load(f"test_IO\\is_cropland_{nr}_{nc}_{shape}.npy")
+
+    # fractions in the region in which demand is met should be set to 0
+    fracs_r1[demands_met] = 0.0
+
+    # find remaining unallocated land within existing cropland
+    fracs_remain = 1 - np.sum(fracs_r1, axis=0)
+    fracs_remain[~is_cropland] = 0.0
+
+    np.save(f"test_IO\\fracs_second_reallocation_{nr}_{nc}_{shape}", fracs_r1)
+    np.save(f"test_IO\\fracs_remaining_{nr}_{nc}_{shape}", fracs_remain)
 
 def compute_sdp(shape=(10, 20), nr=1, nc=3):
     """
@@ -355,8 +384,12 @@ def compute_sdp(shape=(10, 20), nr=1, nc=3):
             reg_prod[reg-1, :] += fracs_flat[:, ind]
             sdp[ind] = ((dems_flat[:, ind]-reg_prod[reg-1, :]) * pot_prods_flat[:, ind]).sum()
 
+def integration_allocation(fracs_remaining, shape=(10, 20), nr=1, nc=3):
+    pass
+
 
 write_inputs(nr=2)
 np_first_reallocation(nr=2)
 integrate_r1_fractions(nr=2)
-compute_sdp(nr=2)
+rework_reallocation(nr=2)
+# compute_sdp(nr=2)

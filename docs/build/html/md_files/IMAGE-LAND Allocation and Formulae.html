@@ -11,11 +11,11 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
         <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -115,9 +115,9 @@
 <li><p>The demand for at least some crops is not yet met when all existing cropland is reallocated.</p></li>
 </ol>
 <p>In the case of outcome 1, the fractions of each crop type allocated to the remaining cropland once demand has been met should be 0. This corresponds to the abandoning of agricultural land where it is no longer needed. Importantly, however, there is a subtlety to outcome 1, as well as the other outcomes. In fact, outcome 1 can describe 2 situations:</p>
-<ol type="a">
-  <li>The demand for each and every crop is met at the same time (when the same cell is reached).</li>
-  <li>The demand for some crops is met before others.</li>
+<ol class="loweralpha simple">
+<li><p>The demand for each and every crop is met at the same time (when the same cell is reached).</p></li>
+<li><p>The demand for some crops is met before others.</p></li>
 </ol>
 <p>Under outcome 1(a) - a less likely outcome than 1(b) - the reallocation process is relatively simple: every crop fraction is allocated according to eq. (4) until demand is met, then the fractions in the remaining cropland cells are all set to 0. To address outcome 1(b), however, there is an important subtlety in IMAGE-LAND. All cropland cells have their crop fractions recalculated, regardless of whether demand is met. They are then looped through a second time, in order of suitability, to determine when demand is met for each crop and re-work the new cell fractions accordingly. Under outcome 1(b), once demand for some crops has been met, the fraction of land allocated to those crops in subsequent cells is 0. Accordingly, a new fraction of those cells, <span class="math notranslate nohighlight">\(f_r\)</span>, is freed up for the crops for which demand has not yet been met. This is achieved with the help of a new quantity,
 labelled <code class="docutils literal notranslate"><span class="pre">sdempr</span></code>, here named SDP. It is defined</p>
@@ -133,16 +133,16 @@ labelled <code class="docutils literal notranslate"><span class="pre">sdempr</sp
 \]</div>
 <p>This process of fraction adjustment is carried out until either demand is met (outcome 1(b)) or, in the case of outcomes 2 and 3, existing cropland is filled. Note that, in the case of outcome 1, those cells in which all new fractions are 0 (cells that will be abandoned) change land cover type to regrowth forest (abandoning).</p>
 <p>As with outcome 1, outcome 2 can describe 2 situations:</p>
-<ol type="a">
-    <li> The demand for each and every crop is only met when the last cell in existing cropland is allocated. </li>
-    <li> The demand for some crops is met before others, with demand for the last crop(s) only being met when all existing cropland is allocated.</li>
+<ol class="loweralpha simple">
+<li><p>The demand for each and every crop is only met when the last cell in existing cropland is allocated.</p></li>
+<li><p>The demand for some crops is met before others, with demand for the last crop(s) only being met when all existing cropland is allocated.</p></li>
 </ol>
 <p>These are very similar to outcomes 1(a) and 1(b), with the difference that no cropland cells end up with 0 fractions for all crops: no agricultural land needs to be abandoned.</p>
 <p>Outcome 3 contains 3 possibilities:</p>
-<ol type="a">
-    <li>The demand for none of the crops is met when all existing cropland has been reallocated.</li>
-    <li> The demand for some crops is met exactly when all existing cropland is allocated, with some unmet demand for other crops.</li>
-   <li> The demand for some, but not all crops is met before existing cropland is reallocated, with unmet demand for other crops.</li>
+<ol class="loweralpha simple">
+<li><p>The demand for none of the crops is met when all existing cropland has been reallocated.</p></li>
+<li><p>The demand for some crops is met exactly when all existing cropland is allocated, with some unmet demand for other crops.</p></li>
+<li><p>The demand for some, but not all crops is met before existing cropland is reallocated, with unmet demand for other crops.</p></li>
 </ol>
 <p>Outcomes 3 (a), (b) and (c) all require an expansion of cropland. In the case of outcomes 3 (b) and (c), cropland only needs to be expanded for some crops. In the case of outcome 3(c), the fractions allocated to some crops are already 0 for some of the existing cropland.</p>
 <p>The equation for determining the fractions in new cropland is the same as that used to find the additional fractions in existing cropland when the remainder of the cell had to be filled: SDP is first computed, then</p>

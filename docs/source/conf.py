@@ -40,6 +40,8 @@ extensions = ['sphinx.ext.napoleon',
 # autoapi_dirs = ['../../imagelcm']
 
 myst_enable_extensions = [
+    "attrs_inline",
+    "attrs_block",
     "amsmath",
     "dollarmath",
     "linkify"
