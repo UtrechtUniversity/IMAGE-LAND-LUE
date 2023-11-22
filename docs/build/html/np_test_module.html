@@ -177,8 +177,23 @@ every crop</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.integration_allocation">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs_remaining</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs_remaining</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
+<dd><p>Allocates new land (or remaining cropland fracs) based on summed yield</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fracs_remaining</strong> (<em>np.ndarray</em><em>, </em><em>default = None</em>) – 2D array containing the remaining empty fractions
+in each cell following the correction to the initial
+cropland reallocation. Value defaults to None in the
+case that the function is called to expand cropland</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>default =</em><em> (</em><em>10</em><em>, </em><em>20</em><em>)</em>) – desired shape of the array, with orientation
+(longitude, latitude)</p></li>
+<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>default = 1</em>) – number of regions (stand-ins for IMAGE world-regions)</p></li>
+<li><p><strong>nc</strong> (<em>int</em><em>, </em><em>default = 3</em>) – number of crops (not including grass)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.np_first_reallocation">
