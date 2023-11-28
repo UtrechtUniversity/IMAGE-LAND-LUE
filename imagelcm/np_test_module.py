@@ -259,45 +259,60 @@ def find_sorted_indices(suit_map):
 
     return sorted_args
 
-def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
+def integrate_r1_fractions(integrands, regs, demand_maps, suit_map):
     """
     Integrates fractions returned by the first reallocation of cropland
 
     Parameters
     ----------
-    shape : tuple of ints, default = (10, 20)
-            desired shape of the array, with orientation
-            (longitude, latitude)
-    nr : int, default = 1
-         number of regions (stand-ins for IMAGE world-regions)
-    nc : int, default = 3
-         number of crops (not including grass)
+    integrands : np.ndarray
+                 np array of shape (n_crops+1, n_lat, n_lon) containing
+                 the quantity to be integrated (crop fractions multiplied
+                 by the potential yield, area and relevant constants)
+    regs : np.ndarray
+           np array containing the regions for every cell in the map
+    demand_maps : np.ndarray
+                  np array of shape (#crops+grass, #lat, #lon), containing
+                  the ratio in demands for each cell (same value for all
+                  cells in a given region)
+    suit_map : np.ndarray
+               2D np array containing the suitabilities for each cell
+    
+    Returns
+    -------
+    integrated_maps : np.ndarray
+                      np array of shape (n_crops+1, n_lat, n_lon)
+                      containing the integrated quantity (regional crop
+                      production, summed over cells in order of
+                      suitability)
+    demands_met : np.ndarray
+                  np array of booleans of same shape as fracs_r1 stating
+                  whether the regional demand for each crop has been met
+                  yet in each cell
+    regional_prod : np.ndarray
+                    np array of shape (n_regions, n_crops+1) containing
+                    the production of each crop by each region
     """
 
-    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
-    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
-    suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}_{shape}.npy")
-    demand_maps = np.load(f"test_IO\\demand_maps_{nr}_{nc}_{shape}.npy")
-    g_area = np.load(f"test_IO\\g_area_{nr}_{nc}_{shape}.npy")
-    pot_prod = np.load(f"test_IO\\potprod_{nr}_{nc}_{shape}.npy")
+    shape = regs.shape
+    nr = regs.max()
+    nc = integrands.shape[0]
 
     # flatten arrays so they can be sorted
     regs_flat = regs.flatten()
-    g_area_flat = g_area.flatten()
-    fracs_flat = np.stack([fracs_r1[crop].flatten() for crop in range(nc+1)], axis=0)
-    pot_prods_flat = np.stack([pot_prod[crop].flatten() for crop in range(nc+1)], axis=0)
+    integrands_flat = np.stack([integrands[crop].flatten() for crop in range(nc+1)], axis=0)
 
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map)
 
     # loop through cells, from low suitability to high
     regional_prod = np.zeros((nr, nc+1))
-    integrated_yields = np.zeros_like(fracs_flat)
+    integrated_yields = np.zeros_like(integrands_flat)
     for ind in sorted_inds:
         reg = int(regs_flat[ind])
         # if in valid region
         if reg>0:
-            regional_prod[reg-1, :] += fracs_flat[:, ind] * pot_prods_flat[:, ind] * g_area_flat[ind]
+            regional_prod[reg-1, :] += integrands_flat[:, ind]
             integrated_yields[:, ind] = regional_prod[reg-1, :]
 
     # somehow turn 1D arrays back into 2D ones
@@ -310,38 +325,49 @@ def integrate_r1_fractions(shape=(10, 20), nr=1, nc=3):
 
     # still need to change values for yields > demands so it gives the same output as LUE function
 
+    # save output arrays
     np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
     np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
     np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
 
-def rework_reallocation(shape=(10, 20), nr=1, nc=3):
+    return integrated_maps, demands_met, regional_prod
+
+def rework_reallocation(fracs_r1, demands_met, regs):
     """
     Delete reallocated fractions where demand is surpassed.
 
     Parameters
     ----------
-    shape : tuple of ints, default = (10, 20)
-            desired shape of the array, with orientation
-            (longitude, latitude)
-    nr : int, default = 1
-         number of regions (stand-ins for IMAGE world-regions)
-    nc : int, default = 3
-         number of crops (not including grass)   
+    fracs_r1 : np.ndarray
+               np array of shape (n_crops+1, n_lat, n_lon) containing
+               the crop fractions resulting from the initial reallocation
+               of existing cropland
+    demands_met : np.ndarray
+                  np array of booleans of same shape as fracs_r1 stating
+                  whether the regional demand for each crop has been met
+                  yet in each cell
+    regs : np.ndarray
+           np array containing the regions for every cell in the map
+
+    Returns
+    -------
+    fracs_r2 : np.ndarray
+               The resulting array once the fractions allocated to crops
+               for which regional demand has already been met has been set
+               to zero
     """
 
-    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}.npy")
-    demands_met = np.load(f"test_IO\\demands_met_{nr}_{nc}_{shape}.npy")
-    is_cropland = np.load(f"test_IO\\is_cropland_{nr}_{nc}_{shape}.npy")
+    shape = fracs_r1.shape[1:]
+    nr = regs.max()
+    nc = fracs_r1.shape[0]
 
     # fractions in the region in which demand is met should be set to 0
     fracs_r1[demands_met] = 0.0
+    fracs_r2 = fracs_r1
 
-    # find remaining unallocated land within existing cropland
-    fracs_remain = 1 - np.sum(fracs_r1, axis=0)
-    fracs_remain[~is_cropland] = 0.0
+    np.save(f"test_IO\\fracs_second_reallocation_{nr}_{nc}_{shape}", fracs_r2)
 
-    np.save(f"test_IO\\fracs_second_reallocation_{nr}_{nc}_{shape}", fracs_r1)
-    np.save(f"test_IO\\fracs_remaining_{nr}_{nc}_{shape}", fracs_remain)
+    return fracs_r2
 
 def compute_sdp(shape=(10, 20), nr=1, nc=3):
     """
@@ -387,7 +413,8 @@ def compute_sdp(shape=(10, 20), nr=1, nc=3):
             reg_prod[reg-1, :] += fracs_flat[:, ind]
             sdp[ind] = ((dems_flat[:, ind]-reg_prod[reg-1, :]) * pot_prods_flat[:, ind]).sum()
 
-def integration_allocation(shape=(10, 20), nr=1, nc=3):
+def integration_allocation(sdp_facs, yield_facs, fracs_r2, regs, suit_map, is_cropland, reg_prod,
+                           reg_demands):
     """
     Allocates new land (or remaining cropland fracs) based on summed yield
 
@@ -398,29 +425,16 @@ def integration_allocation(shape=(10, 20), nr=1, nc=3):
                       in each cell following the correction to the initial
                       cropland reallocation. Value defaults to None in the
                       case that the function is called to expand cropland
-    shape : tuple of ints, default = (10, 20)
-            desired shape of the array, with orientation
-            (longitude, latitude)
-    nr : int, default = 1
-         number of regions (stand-ins for IMAGE world-regions)
-    nc : int, default = 3
-         number of crops (not including grass)   
+ 
     """
 
-    pot_prod = np.load(f"test_IO\\potprod_{nr}_{nc}_{shape}.npy")
-    fracs_r2 = np.load(f"test_IO\\fracs_second_reallocation_{nr}_{nc}_{shape}.npy")
-    reg_prod = np.load(f"test_IO\\regional_prods_{nr}_{nc}_{shape}.npy")
-    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
-    suit_map = np.load(f"test_IO\\suitmap_{nr}_{nc}_{shape}.npy")
-    # integrated_maps = np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}.npy")
-    demand_maps = np.load(f"test_IO\\demand_maps_{nr}_{nc}_{shape}.npy")
-    g_area = np.load(f"test_IO\\g_area_{nr}_{nc}_{shape}.npy")
-    reg_demands = np.load(f"test_IO\\demands_{nr}_{nc}_{shape}.npy")
+    # shape = regs.shape
+    nr = regs.max()
+    nc = yield_facs.shape[0]
 
-    # multiply arrays together for factor
-    yield_fac = pot_prod * np.stack([g_area for _ in range(nc+1)])
-    yield_fac_flat = np.stack([yield_fac[crop].flatten() for crop in range(nc+1)], axis=0)
-    spd_fac_flat = np.stack([pot_prod[crop].flatten() for crop in range(nc+1)], axis=0)
+    # compute demand_maps
+    demand_maps = return_npdemand_map(reg_demands[1, :, :] / reg_demands[0, :, :],
+                                      regs, nr=nr, nc=nc)
 
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map)
@@ -429,7 +443,8 @@ def integration_allocation(shape=(10, 20), nr=1, nc=3):
     regs_flat = regs.flatten()
     old_fracs_flat = np.stack([fracs_r2[crop].flatten() for crop in range(nc+1)], axis=0)
     dems_flat = np.stack([demand_maps[crop].flatten() for crop in range(nc+1)], axis=0)
-    pots_flat = np.stack([pot_prod[crop].flatten() for crop in range(nc+1)], axis=0)
+    yield_fac_flat = np.stack([yield_facs[crop].flatten() for crop in range(nc+1)], axis=0)
+    spd_fac_flat = np.stack([sdp_facs[crop].flatten() for crop in range(nc+1)], axis=0)
     # dm_flat = np.stack([pot_prod[crop].flatten() for crop in range(nc+1)], axis=0)
 
     # compute demands met boolean (one value for each region, for each crop)
@@ -461,7 +476,7 @@ def integration_allocation(shape=(10, 20), nr=1, nc=3):
                 old_fracs_flat[c_dm, ind] = ((reg_demands[reg-1, c_dm] - reg_prod[c_dm])
                                                 / yield_fac_flat[c_dm, ind])
                 rdm[reg-1, c_dm] = True
-            
+
             # compute potential yield, regional prod boolean array and sum of fractions
             yields[:, ind] = old_fracs_flat[:, ind] * yield_fac_flat[:, ind]
             reg_prod += yields[:, ind]
@@ -472,15 +487,15 @@ def integration_allocation(shape=(10, 20), nr=1, nc=3):
             dem_remain = dems_flat[:, ind]-reg_prod[reg-1, :]
             sdp[ind] = (dem_remain * spd_fac_flat[:, ind]).sum()
             extra_fracs[:, ind] = (old_fracs_flat[:, ind]
-                                    + pots_flat[:, ind] / sdp[ind] * dem_remain)
-                
-    # What on Earth do I do with is_cropland and remaining fracs... is remaining fracs meant to 
-    # encompass non-cropland as well? if so I *maybe* need to redefine it. Basically, how many 
-    # times is this function meant to be called - can I get away with calling it just once, and 
+                                    + spd_fac_flat[:, ind] / sdp[ind] * dem_remain)
+
+    # What on Earth do I do with is_cropland and remaining fracs... is remaining fracs meant to
+    # encompass non-cropland as well? if so I *maybe* need to redefine it. Basically, how many
+    # times is this function meant to be called - can I get away with calling it just once, and
     # would that really be desireable?
 
     # It's all cropland-agnostic: doesn't matter. The LCT can be changed from cropland to non-
-    # cropland at the end of the timestep for all those non-cropland cells for which crop fractions 
+    # cropland at the end of the timestep for all those non-cropland cells for which crop fractions
     # are greater than 0. remaining fractions should not be an input.
 
     # But if some non-cropland has higher suitability than cropland, obvs don't want to expand
@@ -488,9 +503,41 @@ def integration_allocation(shape=(10, 20), nr=1, nc=3):
     # function twice - and the first time, to rejig existing computed fractions, will need the
     # is_cropland boolean as an input.
 
-write_inputs(nr=2)
-np_first_reallocation(nr=2)
-integrate_r1_fractions(nr=2)
-rework_reallocation(nr=2)
-integration_allocation(nr=2)
-# compute_sdp(nr=2)
+def main():
+    """Main function."""
+    n_regs = 2
+    n_crops = 3 # excluding grass
+    shape = (10, 20)
+
+    write_inputs(nr=n_regs)
+    np_first_reallocation(nr=n_regs)
+
+    # load inputs for integration function
+    fracs_r1 = np.load(f"test_IO\\fractions_first_reallocation_{n_regs}_{n_crops}_{shape}.npy")
+    regs = np.load(f"test_IO\\regions_{n_regs}_{n_crops}_{shape}.npy")
+    suit_map = np.load(f"test_IO\\suitmap_{n_regs}_{n_crops}_{shape}.npy")
+    demand_maps = np.load(f"test_IO\\demand_maps_{n_regs}_{n_crops}_{shape}.npy")
+    g_area = np.load(f"test_IO\\g_area_{n_regs}_{n_crops}_{shape}.npy")
+    pot_prod = np.load(f"test_IO\\potprod_{n_regs}_{n_crops}_{shape}.npy")
+
+    yield_facs = pot_prod * np.stack([g_area for _ in range(n_crops+1)], axis=0)
+    integrands = fracs_r1 * yield_facs
+
+    integrated_maps, demands_met, regional_prod = integrate_r1_fractions(integrands, regs,
+                                                                         demand_maps, suit_map)
+
+    # get rid of fractions where demand has already been met
+    fracs_r2 = rework_reallocation(fracs_r1, demands_met, regs)
+
+    # define inputs for integration_allocation
+    sdpf = pot_prod
+
+    integration_allocation(nr=n_regs)
+
+    # compute_sdp(nr=2)
+
+    # Actually, I think I should flatten the arrays once, rather than in each function, so the two
+    # key functions take 1D versions of the 'raster' arrays as inputs.
+
+if __name__=='__main__':
+    main()
