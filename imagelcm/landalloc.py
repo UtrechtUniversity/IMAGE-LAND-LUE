@@ -250,6 +250,11 @@ def reallocate_cropland_initial(input_rasters, nonraster_inputs, timestep=1):
 
     return new_fractions
 
+def prepare_for_np():
+    """
+    Halts LUE operations and converts rasters into np format
+    """
+
 @lfr.runtime_scope
 def main():
     """main function"""
