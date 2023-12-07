@@ -9,6 +9,7 @@ import lue.framework as lfr
 import parameters as prm
 import read as rd
 import write as wt
+import np_test_module as ntm
 
 def setup():
     """
@@ -118,7 +119,7 @@ def return_demand_ratios(demands, greg, r_bools, timestep):
 
     ratio_dict = {}
 
-    for crop in range(17):
+    for crop in range(prm.NGFC):
         dr_t = greg
         print(f"loading demand for crop {crop}")
         for reg in range(26):
@@ -129,6 +130,79 @@ def return_demand_ratios(demands, greg, r_bools, timestep):
         ratio_dict[f"crop{crop}"] = dr_t
 
     return ratio_dict
+
+def return_grazintens_map(g_intens, greg, r_bools):
+    """
+    Puts the grazing intensities onto a raster, by region. UNFINISHED
+    
+    Parameters
+    ----------
+    g_intens : np.ndarray
+               np array with shape (# grazing systems, # regions)
+    greg : lue data object
+           regions raster
+    r_bools : list of lue data objects
+              list containing the boolean maps computed by setup
+    
+    Returns
+    -------
+    g_intens_map : lue data object
+                   lue array containing a map of grazing intensities
+
+    See Also
+    --------
+    return_demand_rasters
+    setup
+    """
+
+    # assume all grazing regime 1, for now
+    g_intens = g_intens[0, :]
+
+    g_intens_map = greg
+    for reg in range(26):
+        # if in correct region, value in each cell is equal to the grazing intensity in that region
+        g_intens_map = greg = lfr.where(r_bools[reg], g_intens[reg], g_intens_map)
+
+    return g_intens_map
+
+def return_mf_maps(mfs, greg, r_bools):
+    """
+    Puts the management factors onto rasters, by region. UNFINISHED
+    
+    Parameters
+    ----------
+    mfs : np.ndarray
+          np array with shape (# crops, # regions)
+    greg : lue data object
+           regions raster
+    r_bools : list of lue data objects
+              list containing the boolean maps computed by setup
+    
+    Returns
+    -------
+    g_intens_map : list of lue data object
+                   list of lue arrays containing a map of management
+                   factors for each food crop
+
+    See Also
+    --------
+    return_demand_rasters
+    setup
+    """
+
+    # assume all crops are rain-fed, for now
+    mfs = mfs[:prm.NFC, :]
+
+    mf_maps = []
+    for crop in range(prm.NFC):
+        mf_map = greg
+        print(f"loading management factors for crop {crop}")
+        for reg in range(26):
+            # if in correct region, value in every cell is equal to management fac in that region
+            mf_map = lfr.where(r_bools[reg], mfs[crop, reg], mf_map)
+        mf_maps.append(mf_map)
+
+    return mf_maps
 
 def isolate_cropland(input_rasters):
     """
@@ -234,26 +308,45 @@ def reallocate_cropland_initial(input_rasters, nonraster_inputs, timestep=1):
     graz_intens = nonraster_inputs['GI']
     m_fac = nonraster_inputs['MF']
 
+    # compute grazing intensity map
+    graz_intens_map = return_grazintens_map(graz_intens, input_rasters["R"],
+                                            input_rasters["R_bools"])
+    
+    # change to management maps!! (likely same problem for m_fac)
+    m_fac_maps = return_mf_maps(m_fac, input_rasters["R"], input_rasters["R_bools"])
+
     # compute cf_1 and cf_3
-    cf1 = fractions[0] * demand_ratios['crop0'] / graz_intens
+    cf1 = fractions[0] * demand_ratios['crop0'] / graz_intens_map
     cf3 = fractions[0]
     for crop in range(1, prm.NGFC):
-        cf1 += fractions[crop] * demand_ratios[f'crop{crop}'] / m_fac[crop-1]
+        cf1 += fractions[crop] * demand_ratios[f'crop{crop}'] / m_fac_maps[crop-1]
         cf3 += fractions[crop]
 
     # compute new fractions from cf_1 and cf_3
     new_fractions = []
     cf_ratio = cf3 / cf1
     for crop in range(1, prm.NGFC):
-        new_fraction = fractions[crop] * m_fac[crop-1] * demand_ratios[f'crop{crop}'] * cf_ratio
+        new_fraction = (fractions[crop] * m_fac_maps[crop-1] * demand_ratios[f'crop{crop}']
+                        * cf_ratio)
         new_fractions.append(new_fraction)
 
     return new_fractions
 
-def prepare_for_np():
+def prepare_for_np(fracs):
     """
     Halts LUE operations and converts rasters into np format
     """
+
+    # convert to lu fractions to numpy arrays
+    fracs_numpy = [lfr.to_numpy(arr) for arr in fracs]
+
+    world_shape = fracs_numpy[0].shape
+
+    # flatten
+    fracs_numpy_flat = [fn.flatten() for fn in fracs_numpy]
+
+    return world_shape, fracs_numpy_flat
+
 
 @lfr.runtime_scope
 def main():
@@ -270,8 +363,11 @@ def main():
     input_rasters = isolate_cropland(input_rasters)
     new_fracs = reallocate_cropland_initial(input_rasters, nonraster_inputs)
 
-    for array in new_fracs:
-        lfr.wait(array)
+    shp, fnf = prepare_for_np(new_fracs)
+    # print(new_fracs)
+    print(f"map shape: {shp}")
+
+    # need to compute / convert integrands, regs_flat, demand_maps, suit_map_flat in flat np format
 
     print(f"Time taken: {time()-start}")
 

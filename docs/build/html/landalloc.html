@@ -51,9 +51,12 @@
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.allocated_irrigated_land"><code class="docutils literal notranslate"><span class="pre">allocated_irrigated_land()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.get_irrigated_boolean"><code class="docutils literal notranslate"><span class="pre">get_irrigated_boolean()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.isolate_cropland"><code class="docutils literal notranslate"><span class="pre">isolate_cropland()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#landalloc.prepare_for_np"><code class="docutils literal notranslate"><span class="pre">prepare_for_np()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.reallocate_cropland_initial"><code class="docutils literal notranslate"><span class="pre">reallocate_cropland_initial()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.return_demand_rasters"><code class="docutils literal notranslate"><span class="pre">return_demand_rasters()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.return_demand_ratios"><code class="docutils literal notranslate"><span class="pre">return_demand_ratios()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#landalloc.return_grazintens_map"><code class="docutils literal notranslate"><span class="pre">return_grazintens_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#landalloc.return_mf_maps"><code class="docutils literal notranslate"><span class="pre">return_mf_maps()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.setup"><code class="docutils literal notranslate"><span class="pre">setup()</span></code></a></li>
 </ul>
 </li>
@@ -150,6 +153,12 @@ fractions</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="landalloc.prepare_for_np">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">prepare_for_np</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.prepare_for_np" title="Permalink to this definition"></a></dt>
+<dd><p>Halts LUE operations and converts rasters into np format</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="landalloc.reallocate_cropland_initial">
 <span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">reallocate_cropland_initial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.reallocate_cropland_initial" title="Permalink to this definition"></a></dt>
 <dd><p>Executes the first step of reallocating existing cropland.</p>
@@ -222,6 +231,57 @@ relative to the previous timestep</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.return_demand_rasters" title="landalloc.return_demand_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_demand_rasters</span></code></a>, <a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.return_grazintens_map">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">return_grazintens_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">g_intens</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_bools</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.return_grazintens_map" title="Permalink to this definition"></a></dt>
+<dd><p>Puts the grazing intensities onto a raster, by region. UNFINISHED</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>g_intens</strong> (<em>np.ndarray</em>) – np array with shape (# grazing systems, # regions)</p></li>
+<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>g_intens_map</strong> – lue array containing a map of grazing intensities</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>lue data object</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.return_demand_rasters" title="landalloc.return_demand_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">return_demand_rasters</span></code></a>, <a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="landalloc.return_mf_maps">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">return_mf_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mfs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">greg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">r_bools</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.return_mf_maps" title="Permalink to this definition"></a></dt>
+<dd><p>Puts the management factors onto rasters, by region. UNFINISHED</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mfs</strong> (<em>np.ndarray</em>) – np array with shape (# crops, # regions)</p></li>
+<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>g_intens_map</strong> – list of lue arrays containing a map of management
+factors for each food crop</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of lue data object</p>
 </dd>
 </dl>
 <div class="admonition seealso">

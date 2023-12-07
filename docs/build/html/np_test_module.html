@@ -52,8 +52,8 @@
 <li class="toctree-l2"><a class="reference internal" href="read.html">read module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="write.html">write module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">np_test</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#np_test_module.compute_sdp"><code class="docutils literal notranslate"><span class="pre">compute_sdp()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.find_sorted_indices"><code class="docutils literal notranslate"><span class="pre">find_sorted_indices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#np_test_module.flatten_rasters"><code class="docutils literal notranslate"><span class="pre">flatten_rasters()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.generate_fractions"><code class="docutils literal notranslate"><span class="pre">generate_fractions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.integrate_r1_fractions"><code class="docutils literal notranslate"><span class="pre">integrate_r1_fractions()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.integration_allocation"><code class="docutils literal notranslate"><span class="pre">integration_allocation()</span></code></a></li>
@@ -103,22 +103,6 @@ functioning properly.</p>
 fractions are omitted in this test, as they are all constants and so do
 not affect the behaviour of the functions as such.</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="np_test_module.compute_sdp">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">compute_sdp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.compute_sdp" title="Permalink to this definition"></a></dt>
-<dd><p>Calculates SDP quantity (sdempr in OG code)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>default =</em><em> (</em><em>10</em><em>, </em><em>20</em><em>)</em>) – desired shape of the array, with orientation
-(longitude, latitude)</p></li>
-<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>default = 1</em>) – number of regions (stand-ins for IMAGE world-regions)</p></li>
-<li><p><strong>nc</strong> (<em>int</em><em>, </em><em>default = 3</em>) – number of crops (not including grass)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.find_sorted_indices">
 <span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">find_sorted_indices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">suit_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.find_sorted_indices" title="Permalink to this definition"></a></dt>
 <dd><p>Finds indices to sort flattened arrays by suitability in desc. order</p>
@@ -129,6 +113,25 @@ not affect the behaviour of the functions as such.</p>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>sorted_args</strong> – 1D np array with containing the indices for the
 suitability-sorted arrays</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="np_test_module.flatten_rasters">
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">flatten_rasters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raster_like</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.flatten_rasters" title="Permalink to this definition"></a></dt>
+<dd><p>Flattens raster-like arrays (or stacks of rasters) to 1D (2D) arrays</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>raster_like</strong> (<em>np.ndarray</em>) – 2D or 3D array to be converted into a 1D or 2D array
+with the spatial dimensions being reduced to a
+single dimension</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>flattened_raster_like</strong> – array with 1 dimension fewer than raster_like</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -161,36 +164,48 @@ every crop</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.integrate_r1_fractions">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integrate_r1_fractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integrate_r1_fractions" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integrate_r1_fractions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">integrands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">demand_maps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suit_map_flat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integrate_r1_fractions" title="Permalink to this definition"></a></dt>
 <dd><p>Integrates fractions returned by the first reallocation of cropland</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>default =</em><em> (</em><em>10</em><em>, </em><em>20</em><em>)</em>) – desired shape of the array, with orientation
-(longitude, latitude)</p></li>
-<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>default = 1</em>) – number of regions (stand-ins for IMAGE world-regions)</p></li>
-<li><p><strong>nc</strong> (<em>int</em><em>, </em><em>default = 3</em>) – number of crops (not including grass)</p></li>
+<li><p><strong>integrands</strong> (<em>np.ndarray</em>) – np array of shape (n_crops+1, n_lat, n_lon) containing
+the quantity to be integrated (crop fractions multiplied
+by the potential yield, area and relevant constants)</p></li>
+<li><p><strong>regs</strong> (<em>np.ndarray</em>) – np array containing the regions for every cell in the map</p></li>
+<li><p><strong>demand_maps</strong> (<em>np.ndarray</em>) – np array of shape (#crops+grass, #lat, #lon), containing
+the ratio in demands for each cell (same value for all
+cells in a given region)</p></li>
+<li><p><strong>suit_map</strong> (<em>np.ndarray</em>) – 2D np array containing the suitabilities for each cell</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>integrated_maps</strong> (<em>np.ndarray</em>) – np array of shape (n_crops+1, n_lat, n_lon)
+containing the integrated quantity (regional crop
+production, summed over cells in order of
+suitability)</p></li>
+<li><p><strong>demands_met</strong> (<em>np.ndarray</em>) – np array of booleans of same shape as fracs_r1 stating
+whether the regional demand for each crop has been met
+yet in each cell</p></li>
+<li><p><strong>regional_prod</strong> (<em>np.ndarray</em>) – np array of shape (n_regions, n_crops+1) containing
+the production of each crop by each region</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.integration_allocation">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs_remaining</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sdp_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yield_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_fracs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suit_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_prod</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_demands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dems_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cropland</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
 <dd><p>Allocates new land (or remaining cropland fracs) based on summed yield</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fracs_remaining</strong> (<em>np.ndarray</em><em>, </em><em>default = None</em>) – 2D array containing the remaining empty fractions
+<dd class="field-odd"><p><strong>fracs_remaining</strong> (<em>np.ndarray</em><em>, </em><em>default = None</em>) – 2D array containing the remaining empty fractions
 in each cell following the correction to the initial
 cropland reallocation. Value defaults to None in the
-case that the function is called to expand cropland</p></li>
-<li><p><strong>shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>default =</em><em> (</em><em>10</em><em>, </em><em>20</em><em>)</em>) – desired shape of the array, with orientation
-(longitude, latitude)</p></li>
-<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>default = 1</em>) – number of regions (stand-ins for IMAGE world-regions)</p></li>
-<li><p><strong>nc</strong> (<em>int</em><em>, </em><em>default = 3</em>) – number of crops (not including grass)</p></li>
-</ul>
+case that the function is called to expand cropland</p>
 </dd>
 </dl>
 </dd></dl>
@@ -237,16 +252,27 @@ cells in a given region)</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.rework_reallocation">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">rework_reallocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(10,</span> <span class="pre">20)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.rework_reallocation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">rework_reallocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs_r1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">demands_met</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.rework_reallocation" title="Permalink to this definition"></a></dt>
 <dd><p>Delete reallocated fractions where demand is surpassed.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<em>tuple</em><em> of </em><em>ints</em><em>, </em><em>default =</em><em> (</em><em>10</em><em>, </em><em>20</em><em>)</em>) – desired shape of the array, with orientation
-(longitude, latitude)</p></li>
-<li><p><strong>nr</strong> (<em>int</em><em>, </em><em>default = 1</em>) – number of regions (stand-ins for IMAGE world-regions)</p></li>
-<li><p><strong>nc</strong> (<em>int</em><em>, </em><em>default = 3</em>) – number of crops (not including grass)</p></li>
+<li><p><strong>fracs_r1</strong> (<em>np.ndarray</em>) – np array of shape (n_crops+1, n_lat, n_lon) containing
+the crop fractions resulting from the initial reallocation
+of existing cropland</p></li>
+<li><p><strong>demands_met</strong> (<em>np.ndarray</em>) – np array of booleans of same shape as fracs_r1 stating
+whether the regional demand for each crop has been met
+yet in each cell</p></li>
+<li><p><strong>regs</strong> (<em>np.ndarray</em>) – np array containing the regions for every cell in the map</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fracs_r2</strong> – The resulting array once the fractions allocated to crops
+for which regional demand has already been met has been set
+to zero</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
 </dd></dl>
