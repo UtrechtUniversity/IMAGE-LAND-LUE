@@ -149,11 +149,12 @@ def read_nonraster_inputs(ir_rf=False, data_dir="data\\"):
     """
 
     # max productivity for each crop mean of ir and r-f; divided by 10 (kg/ha to tons/km^2)
-    max_pr_rf = np.loadtxt(f"{data_dir}MAXPR.txt")[0:prm.NFC] # pylint: disable=no-member
-    max_pr_ir = np.loadtxt(f"{data_dir}MAXPR.txt")[22:prm.NFC+22] # pylint: disable=no-member
+    max_pr_rf = np.loadtxt(f"{data_dir}MAXPR.txt")[1:prm.NGFC] # pylint: disable=no-member
+    max_pr_ir = np.loadtxt(f"{data_dir}MAXPR.txt")[prm.NGFC+prm.NBC:] # pylint: disable=no-member
 
     if not ir_rf:
-        max_pr = np.mean(np.stack([max_pr_rf, max_pr_ir]), axis=0) / 10
+        max_pr = np.concatenate(([np.loadtxt(f"{data_dir}MAXPR.txt")[0]], 
+                                 np.mean(np.stack([max_pr_rf, max_pr_ir]), axis=0) / 10))
 
     # read in management factor and frharvcomb [ASSUMED CONSTANT!!!]
     m_fac = np.load(f"{data_dir}MF.npy")[0, :, :]

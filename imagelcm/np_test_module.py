@@ -259,7 +259,7 @@ def find_sorted_indices(suit_map):
 
     return sorted_args
 
-def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat):
+def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, save=False):
     """
     Integrates fractions returned by the first reallocation of cropland
 
@@ -295,21 +295,27 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat):
     """
 
     shape = demand_maps.shape[1:]
-    nr = regs_flat.max()
-    nc = integrands.shape[0]
+    nr = int(np.nanmax(regs_flat))
+    # nc here defined as number of non-grass crops
+    nc = integrands.shape[0]-1
 
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map_flat)
 
     # loop through cells, from low suitability to high
-    regional_prod = np.zeros((nr, nc+1))
+    if nr<27:
+        regional_prod = np.zeros((nr, nc+1))
+    else:
+        regional_prod = np.zeros((26, nc+1))
     integrated_yields = np.zeros_like(integrands)
     for ind in sorted_inds:
-        reg = int(regs_flat[ind])
+        reg = regs_flat[ind]
         # if in valid region
-        if reg>0:
-            regional_prod[reg-1, :] += integrands[:, ind]
-            integrated_yields[:, ind] = regional_prod[reg-1, :]
+        if reg!=np.nan:
+            if 0<reg<27:
+                reg = int(reg)
+                regional_prod[reg-1, :] += integrands[:, ind]
+                integrated_yields[:, ind] = regional_prod[reg-1, :]
 
     # somehow turn 1D arrays back into 2D ones
     integrated_maps = np.zeros((nc+1, shape[0], shape[1]))
@@ -322,9 +328,10 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat):
     # still need to change values for yields > demands so it gives the same output as LUE function
 
     # save output arrays
-    np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
-    np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
-    np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
+    if save:
+        np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
+        np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
+        np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
 
     return integrated_maps, demands_met, regional_prod
 
@@ -397,45 +404,47 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     extra_fracs = np.zeros_like(old_fracs_flat)
     yields = np.zeros_like(old_fracs_flat)
     for ind in sorted_inds:
-        reg = int(regs_flat[ind])
+        reg = regs_flat[ind]
         # if in valid region and cell belongs to the appropriate category (cropland or not)
-        if reg>0 and cells_relevant[ind]:
-            # find crops with demand already met - 'old' fraction must be 0
-            c_dm = np.where(rdm[reg-1, :])[0]
-            old_fracs_flat[c_dm, ind] = 0.0
+        if reg!=np.nan:
+            reg = int(reg)
+            if 0<reg<27 and cells_relevant[ind]:
+                # find crops with demand already met - 'old' fraction must be 0
+                c_dm = np.where(rdm[reg-1, :])[0]
+                old_fracs_flat[c_dm, ind] = 0.0
 
-            # store temporary updated regional production for current region
-            reg_prod_temp = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
-            # reg_prod[reg-1, :] += old_fracs_flat[:, ind] * yield_fac_flat[:, ind]
+                # store temporary updated regional production for current region
+                reg_prod_temp = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
+                # reg_prod[reg-1, :] += old_fracs_flat[:, ind] * yield_fac_flat[:, ind]
 
-            # store temporary regional demand met boolean array for current region and c_dm
-            rdm_temp = reg_prod_temp > reg_demands[1, reg-1 , :]
-            c_dm = np.where(np.logical_and(rdm_temp, old_fracs_flat[:, ind]>0))[0]
-            print(c_dm)
+                # store temporary regional demand met boolean array for current region and c_dm
+                rdm_temp = reg_prod_temp > reg_demands[1, reg-1 , :]
+                c_dm = np.where(np.logical_and(rdm_temp, old_fracs_flat[:, ind]>0))[0]
+                # print(c_dm)
 
-            # correct fractions which have just made regional production exceed demand
-            if len(c_dm):
-                old_fracs_flat[c_dm, ind] = ((reg_demands[reg-1, c_dm] - reg_prod[c_dm])
-                                                / yield_facs_flat[c_dm, ind])
-                rdm[reg-1, c_dm] = True
+                # correct fractions which have just made regional production exceed demand
+                if len(c_dm):
+                    old_fracs_flat[c_dm, ind] = ((reg_demands[1, reg-1, c_dm] - reg_prod[reg-1, c_dm])
+                                                    / yield_facs_flat[c_dm, ind])
+                    rdm[reg-1, c_dm] = True
 
-            # compute potential yield, regional prod boolean array and sum of fractions
-            yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
-            reg_prod += yields[:, ind]
-            f_sum = old_fracs_flat[:, ind].sum()
-            print(f_sum)
+                # compute potential yield, regional prod boolean array and sum of fractions
+                yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
+                reg_prod += yields[:, ind]
+                f_sum = old_fracs_flat[:, ind].sum()
+                # print(f_sum)
 
-            # remaining regional demand for crop
-            dem_remain = dems_flat[:, ind]-reg_prod[reg-1, :]
-            sdp[ind] = (dem_remain * sdp_facs_flat[:, ind]).sum()
-            extra_fracs[:, ind] = (old_fracs_flat[:, ind]
-                                    + sdp_facs_flat[:, ind] / sdp[ind] * dem_remain)
+                # remaining regional demand for crop
+                dem_remain = dems_flat[:, ind]-reg_prod[reg-1, :]
+                sdp[ind] = (dem_remain * sdp_facs_flat[:, ind]).sum()
+                extra_fracs[:, ind] = (old_fracs_flat[:, ind]
+                                        + sdp_facs_flat[:, ind] / sdp[ind] * dem_remain)
 
     new_fracs_flat = old_fracs_flat + extra_fracs
 
     # reshape into raster-like shape
-    new_fracs = np.zeros((nc+1, shape[0], shape[1]))
-    for crop in range(nc+1):
+    new_fracs = np.zeros((nc, shape[0], shape[1]))
+    for crop in range(nc):
         new_fracs[crop] = np.reshape(new_fracs_flat[crop], shape)
 
     # If some non-cropland has higher suitability than cropland, obvs don't want to expand
