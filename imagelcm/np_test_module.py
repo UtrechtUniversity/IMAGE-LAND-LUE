@@ -373,7 +373,8 @@ def rework_reallocation(fracs_r1, demands_met, regs):
     return fracs_r2
 
 def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_flat, suit_map,
-                           reg_prod, reg_demands, dems_flat, is_cropland, shape, expansion=False):
+                           reg_prod, reg_demands, dems_flat, is_cropland, shape, expansion=False,
+                           save=False):
     """
     Allocates new land (or remaining cropland fracs) based on summed yield
 
@@ -452,6 +453,12 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     # function twice - and the first time, to rejig existing computed fractions, will need the
     # is_cropland boolean as an input.
 
+    nr = min(reg, 26)
+
+    # save output arrays
+    if save:
+        np.save(f"test_IO\\new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
+
     return new_fracs, reg_prod
 
 def flatten_rasters(raster_like):
@@ -461,9 +468,9 @@ def flatten_rasters(raster_like):
     Parameters
     ----------
     raster_like : np.ndarray
-                      2D or 3D array to be converted into a 1D or 2D array
-                      with the spatial dimensions being reduced to a
-                      single dimension
+                  2D or 3D array to be converted into a 1D or 2D array
+                  with the spatial dimensions being reduced to a
+                  single dimension
     
     Returns
     -------
@@ -481,3 +488,40 @@ def flatten_rasters(raster_like):
         raise ValueError("Should only call flatten_rasters on np.ndarray with 2 or 3 dimensions.")
 
     return flattened_raster_like
+
+def compute_largest_fraction_np(fracs, nr, save=False):
+    """
+    Finds crop with largest fraction (and what the fraction is), cellwise
+
+    Parameters
+    ----------
+    fracs : np.ndarray
+            3D array with shape (#n_crops+grass, # n_lat, #_lon)
+    save : bool, default = False
+           if true, save outputs in .npy format
+    
+    Returns
+    -------
+    mac : np.ndarray
+          2D array containing the most allocated crop, for all cells
+    mfrac : np.ndarray
+            2D array containing the largest crop fraction, for all cells
+    """
+
+    nc = fracs.shape[0]-1
+    shape = fracs.shape[1:]
+
+    # turn nans to -1
+    fracs[np.isnan(fracs)] = -1.
+
+    mac = np.argmax(fracs, axis=0).astype(np.float32)
+    mfrac = np.amax(fracs, axis=0)
+
+    # turn results from all-nan slices to nan (most likely water)
+    mac[mac==-1], mfrac[mfrac==-1] = np.nan, np.nan
+
+    if save:
+        np.save(f"test_IO\\mac_{nr}_{nc}_{shape}", mac)
+        np.save(f"test_IO\\mfrac_{nr}_{nc}_{shape}", mfrac)
+
+    return mac, mfrac

@@ -306,9 +306,23 @@ def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
 
     return mapped_data
 
-def compute_largest_fraction(fracs):
+def compute_largest_fraction(fracs, save=False):
     """
     Finds the largest crop fraction and the crop it belongs to
+
+    Parameters
+    ----------
+    fracs : list of LUE data objects
+            list of arrays containing the crop fractions for all cells
+    save : bool, default = False
+           if true, save outputs in netcdf format
+
+    Returns
+    -------
+    ma_frac : LUE data object
+              2D array containing the largest crop fraction, for all cells
+    ma_crop : LUE data object
+              2D array containing the most allocated crop, for all cells
     """
 
     n_fracs = len(fracs)
@@ -322,6 +336,10 @@ def compute_largest_fraction(fracs):
         current_crop_bigger = fracs[crop] > ma_frac
         ma_frac = lfr.where(current_crop_bigger, fracs[crop], ma_frac)
         ma_crop = lfr.where(current_crop_bigger, crop, ma_crop)
+
+    if save:
+        wt.write_raster(ma_frac, 'mafrac')
+        wt.write_raster(ma_crop, 'mac')
 
     return ma_frac, ma_crop
 
@@ -479,6 +497,9 @@ def main():
     input_rasters, nonraster_inputs = setup()
     input_rasters = isolate_cropland(input_rasters)
 
+    # save initial mac, mafrac
+    compute_largest_fraction(input_rasters['f'])
+
     # map management facs, grazing intensity, demand ratios
     mapped_data = map_tabulated_data(input_rasters, nonraster_inputs)
 
@@ -519,8 +540,10 @@ def main():
     fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs, yield_facs_flat, fracs_r2_flat,
                                                             r_np, s_np, regional_prod,
                                                             reg_demands, d_np, is_cropland_flat,
-                                                            shp)
-    
+                                                            shp, save=True)
+
+    ntm.compute_largest_fraction_np(fracs_r3, 26, save=True)
+
     ## Might be something off with the number of crops!
 
     print(f"Time taken: {time()-start}")
