@@ -8,11 +8,13 @@ fractions are omitted in this test, as they are all constants and so do
 not affect the behaviour of the functions as such.
 """
 
+# import time
 from math import ceil
 import numpy as np
 # import parameters as prm
 
 from read import check_wdir
+import write as wt
 
 def write_inputs(shape=(10, 20), nr=1, nc=3):
     """
@@ -259,6 +261,32 @@ def find_sorted_indices(suit_map):
 
     return sorted_args
 
+def denan_integration_input(array, dtype='float'):
+    """
+    Takes in inputs to integration functions and converts nans to zeros
+
+    Parameters
+    ----------
+    array : np.ndarray
+    dtype : str, default = 'float'
+            datatype of array; must be either int or float
+
+    Returns
+    -------
+    new_array : np.ndarray
+                array of same dimensions as array
+    """
+
+    new_array = array.copy()
+    if dtype=='float':
+        new_array[np.isnan(new_array)] = 0.0
+    elif dtype=='int':
+        new_array[np.isnan(new_array)] = 0
+    else:
+        raise ValueError("dtype provided must be a string named 'int' or 'float'")
+    
+    return new_array
+
 def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, save=False):
     """
     Integrates fractions returned by the first reallocation of cropland
@@ -302,7 +330,10 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map_flat)
 
-    # loop through cells, from low suitability to high
+    # convert nans to zeros
+    integrands[np.isnan(integrands)] = 0.0
+
+    # loop through cells, from high suitability to low
     if nr<27:
         regional_prod = np.zeros((nr, nc+1))
     else:
@@ -311,16 +342,15 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
     for ind in sorted_inds:
         reg = regs_flat[ind]
         # if in valid region
-        if reg!=np.nan:
-            if 0<reg<27:
-                reg = int(reg)
-                regional_prod[reg-1, :] += integrands[:, ind]
-                integrated_yields[:, ind] = regional_prod[reg-1, :]
+        if reg!=np.nan and 0<reg<27:
+            reg = int(reg)
+            regional_prod[reg-1, :] += integrands[:, ind]
+            integrated_yields[:, ind] = regional_prod[reg-1, :]
 
     # somehow turn 1D arrays back into 2D ones
     integrated_maps = np.zeros((nc+1, shape[0], shape[1]))
     for crop in range(nc+1):
-        integrated_maps[crop] = np.reshape(integrated_yields[crop], shape)
+        integrated_maps[crop, :, :] = np.reshape(integrated_yields[crop], shape)
 
     # compute Boolean demands_met maps
     demands_met = integrated_maps < demand_maps
@@ -398,9 +428,9 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     sorted_inds = find_sorted_indices(suit_map)
 
     # compute demands met boolean (one value for each region, for each crop)
-    rdm = reg_prod > reg_demands[1, : , :]
+    rdm = reg_prod >= reg_demands[1, : , :]
 
-    # loop through cells, from low suitability to high
+    # loop through cells, from high suitability to low
     sdp = np.zeros_like(regs_flat)
     extra_fracs = np.zeros_like(old_fracs_flat)
     yields = np.zeros_like(old_fracs_flat)
@@ -416,10 +446,9 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
 
                 # store temporary updated regional production for current region
                 reg_prod_temp = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
-                # reg_prod[reg-1, :] += old_fracs_flat[:, ind] * yield_fac_flat[:, ind]
 
                 # store temporary regional demand met boolean array for current region and c_dm
-                rdm_temp = reg_prod_temp > reg_demands[1, reg-1 , :]
+                rdm_temp = reg_prod_temp >= reg_demands[1, reg-1 , :]
                 c_dm = np.where(np.logical_and(rdm_temp, old_fracs_flat[:, ind]>0))[0]
                 # print(c_dm)
 
@@ -438,8 +467,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                 # remaining regional demand for crop
                 dem_remain = dems_flat[:, ind]-reg_prod[reg-1, :]
                 sdp[ind] = (dem_remain * sdp_facs_flat[:, ind]).sum()
-                extra_fracs[:, ind] = (old_fracs_flat[:, ind]
-                                        + sdp_facs_flat[:, ind] / sdp[ind] * dem_remain)
+                extra_fracs[:, ind] = ((1-f_sum) * sdp_facs_flat[:, ind] / sdp[ind] * dem_remain)
 
     new_fracs_flat = old_fracs_flat + extra_fracs
 
@@ -457,7 +485,8 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
 
     # save output arrays
     if save:
-        np.save(f"test_IO\\new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
+        wt.write_np_raster(f"new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
+        # np.save(f"test_IO\\new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
 
     return new_fracs, reg_prod
 
@@ -489,7 +518,7 @@ def flatten_rasters(raster_like):
 
     return flattened_raster_like
 
-def compute_largest_fraction_np(fracs, nr, save=False):
+def compute_largest_fraction_np(fracs, nr, save=False, nan_map=None):
     """
     Finds crop with largest fraction (and what the fraction is), cellwise
 
@@ -520,8 +549,13 @@ def compute_largest_fraction_np(fracs, nr, save=False):
     # turn results from all-nan slices to nan (most likely water)
     mac[mac==-1], mfrac[mfrac==-1] = np.nan, np.nan
 
+    if nan_map is not None:
+        mac[nan_map] = np.NaN
+
     if save:
         np.save(f"test_IO\\mac_{nr}_{nc}_{shape}", mac)
         np.save(f"test_IO\\mfrac_{nr}_{nc}_{shape}", mfrac)
+        wt.write_np_raster('mac_1', mac)
+        wt.write_np_raster('mfrac_1', mfrac)
 
     return mac, mfrac

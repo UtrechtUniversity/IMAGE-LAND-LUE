@@ -4,6 +4,7 @@ Read input files into the lue framework.
 
 import os
 import numpy as np
+import xarray as xr
 import lue.framework as lfr
 
 import parameters as prm
@@ -75,6 +76,55 @@ def read_raster(res, file_name, data_dir="data\\"):
 
     return raster
 
+def read_raster_np(res, file_name, data_dir="data\\"):
+    """
+    Reads rasters of specified resolution into LUE VIA XARRAY AND NUMPY!
+    
+    Parameters
+    ----------
+    res : int or float
+          resolution of the raster to be read in
+    file_name : str
+                name of the raster file, including the extension
+    data_dir : str, default = 'data\\'
+               relative path to the file
+    
+    Returns
+    -------
+    raster : lue data object
+
+    Raises
+    ------
+    TypeError
+        if res is neither an int nor a float
+    """
+
+    if not isinstance(res, int) and not isinstance(res, float):
+        raise TypeError("input 'res' must be an integer or float")
+
+    # 1x2 partitions
+    res_factor = int(60/res)
+    shape = (180*res_factor, 360*res_factor/2)
+
+    path_name = data_dir + file_name
+
+    datarray = xr.open_dataarray(path_name)
+    raster_np = datarray.values
+    rank = len(raster_np.shape)
+
+    # if rank of array = 3, time axis must be removed
+    if rank==3:
+        raster_np = raster_np[0, :, :]
+
+    # raster = lfr.from_gdal(path_name, shape) # pylint: disable=no-member
+    raster = lfr.from_numpy(raster_np, shape) # pylint: disable=no-member
+
+    # ensure datatype is float, not int
+    if raster.dtype==np.int32:
+        raster = lfr.cast(raster, np.float32)  # pylint: disable=no-member
+
+    return raster
+
 def read_input_rasters(ir_rf=False, data_dir="data\\"):
     """
     Reads IMAGE-LAND's raster inputs and returns them as a dictionary.
@@ -96,25 +146,25 @@ def read_input_rasters(ir_rf=False, data_dir="data\\"):
     """
 
     # read in constant maps
-    greg = read_raster(5, "GREG_5MIN.nc")
-    glct = read_raster(5, "GLCT.NC")
-    gsuit = read_raster(5, "gsuit_new_world.map")
-    garea = read_raster(5, "gareacell.map")
+    greg = read_raster_np(5, "GREG_5MIN.nc")
+    glct = read_raster_np(5, "GLCT.NC")
+    gsuit = read_raster_np(5, "gsuit_new_world.nc")
+    garea = read_raster_np(5, "gareacell.nc")
 
     grmppc_maps = []
     fractions = []
     for crop in range(prm.NGFC): # pylint: disable=no-member
         if not ir_rf:
             # read in crop+1 from gfrac for each crop, because crop 0 is grass (reads IR and RF)
-            gfrac_rf = read_raster(5, f"gfrac{crop}.map", data_dir=data_dir+"gfrac\\")
-            gfrac_ir = read_raster(5, f"gfrac{crop+21}.map", data_dir=data_dir+"gfrac\\")
+            gfrac_rf = read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac\\")
+            gfrac_ir = read_raster_np(5, f"gfrac{crop+21}.nc", data_dir=data_dir+"gfrac\\")
 
             # combine rain-fed and irrigated
             fractions.append(gfrac_rf + gfrac_ir)
 
             # read in potential productivity maps
-            grmppc_rf = read_raster(5, f"grmppc{crop}_5MIN.map", data_dir=data_dir+"grmppc\\")
-            grmppc_ir = read_raster(5, f"grmppc{crop+21}_5MIN.map", data_dir=data_dir+"grmppc\\")
+            grmppc_rf = read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc\\")
+            grmppc_ir = read_raster(5, f"grmppc{crop+21}_5MIN.tif", data_dir=data_dir+"grmppc\\")
 
             grmppc_maps.append((grmppc_rf+grmppc_ir)/2.)
 
@@ -159,9 +209,7 @@ def read_nonraster_inputs(ir_rf=False, data_dir="data\\"):
     # read in management factor and frharvcomb [ASSUMED CONSTANT!!!]
     m_fac = np.load(f"{data_dir}MF.npy")[0, :, :]
     graz_intens = np.load(f"{data_dir}GI.npy")[0, :, :]
-    fr_harv_comb = np.load(f"{data_dir}FH.npy")
-    fr_harv_comb = np.ones(prm.NFC) # to make things simpler for now # pylint: disable=no-member
-
+    fr_harv_comb = np.load(f"{data_dir}FH.npy")[0, :, :]
 
     # load crop demands from .npy files
     food_demands = np.zeros((131, prm.NGFC, 26)) # pylint: disable=no-member

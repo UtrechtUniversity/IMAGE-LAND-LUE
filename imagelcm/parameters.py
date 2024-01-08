@@ -29,3 +29,6 @@ NFBF = 21
 # number of grazing systems
 NGS = 2
 NGST = NGS + 1 # NGS + 'total'
+
+# whether to print inputs and ouputs throughout the model for debugging
+CHECK_IO = True

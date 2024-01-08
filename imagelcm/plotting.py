@@ -2,6 +2,8 @@
 Plots saved outputs (eventually in both .npy and .nc formats)
 """
 import numpy as np
+import xarray as xr
+
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import cartopy.crs as ccrs
@@ -24,7 +26,7 @@ def setup_spatial_plots(n_plots, projection=ccrs.AlbersEqualArea()):
 
     return plot_tuples
 
-def plot_saved_npy(var_name, nr, nc, shape, projection=ccrs.AlbersEqualArea(), colormap='rainbow'):
+def plot_saved_npy(var_name, nr, nc, shape, projection=ccrs.AlbersEqualArea(), colormap="tab20b"):
     """
     Plots saved outputs from the np_test_module functions
     """
@@ -38,6 +40,49 @@ def plot_saved_npy(var_name, nr, nc, shape, projection=ccrs.AlbersEqualArea(), c
     print(lon.shape)
 
     var = np.load(f"test_IO\\{var_name}_{nr}_{nc}_{shape}.npy")
+
+    var_shape = var.shape
+
+    # if the variable is a list of maps, then separate it out and make separate plots
+    if len(var_shape)==3:
+        separated_var = [var[ind, :, :] for ind in var_shape[0]]
+
+        for sv in separated_var:
+            # plot preparation
+            fig = plt.figure(dpi=150)
+            ax = fig.add_subplot(111, projection=projection)
+
+            # plotting
+            plotted_var = ax.pcolormesh(lon, lat, sv, shading='nearest',
+                                           cmap=mpl.colormaps[colormap])
+            plt.colorbar(plotted_var, ax=ax, spacing='uniform')
+
+    # if the variable is 2D, then plot as normal
+    elif len(var_shape)==2:
+        # plot preparation
+        fig = plt.figure(dpi=150)
+        ax = fig.add_subplot(111, projection=projection)
+
+        # plotting
+        plotted_var = ax.pcolormesh(lon, lat, var, shading='nearest',
+                                           cmap=mpl.colormaps[colormap])
+        plt.colorbar(plotted_var, ax=ax, spacing='uniform')
+
+def plot_saved_netcdf(var_name, nr, nc, shape, projection=ccrs.AlbersEqualArea(),
+                      colormap="tab20b", dir='data'):
+    """
+    Plots saved outputs from the np_test_module functions
+    """
+
+    # construct meshgrids for plotting
+    lons = np.linspace(0, 360, shape[1])
+    lats = np.linspace(-90, 90, shape[0])
+    lon, lat = np.meshgrid(lons, lats)
+
+    print(shape)
+    print(lon.shape)
+
+    var = xr.open_dataarray(f"{dir}\\{var_name}_{nr}_{nc}_{shape}.npy")
 
     var_shape = var.shape
 
