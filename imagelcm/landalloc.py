@@ -432,7 +432,7 @@ def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs)
 
     return pot_yields
 
-def compute_additional_maps(input_rasters, mapped_data, nonraster_inputs):
+def compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs):
     """
     Computes yield factor, sdp factor and cropland bool
     """
@@ -455,32 +455,95 @@ def compute_additional_maps(input_rasters, mapped_data, nonraster_inputs):
 
     return yield_facs, sdp_facs, is_cropland
 
-def prepare_for_np(fracs, p_yields, dem_maps, regs, suitmap):
+def raster_s_to_np(raster_s, is_list=False, flatten=False):
     """
-    Converts rasters to np format.
+    Converts a lue array or list of lue arrays to a numpy ndarray
+    
+    PARAMETERS
+    ----------
+    raster_s : lue PartitionedArray or list of lue PartitionedArray
+    is_list : Bool, default = False
+              True if raster_s is a list of lue arrays; false if it is a
+              single array
+    flatten : Bool
+              True if the lue array(s) should be flattened
+
+    RETURNS
+    -------
+    out : np.ndarray
+          3-dimensional when is_list=True, flatten=false; 2-dimensional
+          when is_list=False, flatten=False or when is_list=True,
+          flatten=True; 1-dimensional when is_list=False, flatten=True
     """
 
-    # convert (lists of) LUE arrays to numpy arrays; flatten
-    fracs_numpy = [lfr.to_numpy(arr) for arr in fracs]
-    fracs_np_3D = np.asarray(fracs_numpy)
+    if is_list:
+        if flatten:
+            numpy_arrs = [lfr.to_numpy(arr).flatten for arr in raster_s]
+        else:
+            numpy_arrs = [lfr.to_numpy(arr) for arr in raster_s]
+        out = np.asarray(numpy_arrs)
+    else:
+        out = lfr.to_numpy(raster_s)
+        if flatten:
+            out = out.flatten()
 
-    pyields_numpy = [lfr.to_numpy(arr) for arr in p_yields]
-    pyields_np_flat = np.asarray([py.flatten() for py in pyields_numpy])
+    return out
 
-    dm_numpy = [lfr.to_numpy(arr) for arr in dem_maps.values()]
-    dm_2D = np.asarray(dm_numpy)
-    dm_np_flat = np.asarray([dn.flatten() for dn in dm_numpy])
+def prepare_for_np(to_be_converted):
+    """
+    Converts rasters to np format
 
-    sm_np = lfr.to_numpy(suitmap) # don't flatten suitmap yet
-    regs_np_flat = lfr.to_numpy(regs).flatten()
+    PARAMETERS
+    ----------
+    to_be_converted : dict
+                      dictionary containing (lists of) lue
+                      PartitionedArrays to be converted to np format
+    
+    RETURNS
+    -------
+    world_shape : tuple
+                  shape of the IMAGE-LAND rasters
+    converted : dict
+                dictionary of arrays converted into np.ndarrays; some of
+                them flattened
+    """
+
+    # dictionary to stor the converted arrays
+    converted = {}
+
+    # # convert (lists of) LUE arrays to numpy arrays; flatten
+    # fracs_numpy = [lfr.to_numpy(arr) for arr in fracs]
+    # fracs_np_3D = np.asarray(fracs_numpy)
+
+    converted['fracs_3D'] = raster_s_to_np(to_be_converted['fracs'], is_list=True)
+
+
+    # pyields_numpy = [lfr.to_numpy(arr) for arr in p_yields]
+    # pyields_np_flat = np.asarray([py.flatten() for py in pyields_numpy])
+
+    converted['flattened_yields'] = raster_s_to_np(to_be_converted['pot_yields'], is_list=True,
+                                                   flatten=True)
+
+    # dm_numpy = [lfr.to_numpy(arr) for arr in dem_maps.values()]
+    # dm_2D = np.asarray(dm_numpy)
+    # dm_np_flat = np.asarray([dn.flatten() for dn in dm_numpy])
+
+    converted['dem_rats'] = raster_s_to_np(to_be_converted['dem_rats'], is_list=True)
+    converted['flattened_dem_rats'] = raster_s_to_np(to_be_converted['dem_rats'], is_list=True,
+                                                     flatten=True)
+
+    # sm_np = lfr.to_numpy(suitmap) # don't flatten suitmap yet
+    converted['suit'] = raster_s_to_np(to_be_converted['suit'])
+
+    # regs_np_flat = lfr.to_numpy(regs).flatten()
+    converted['flattened_R'] = raster_s_to_np(to_be_converted['suit'], flatten=True)
 
     # deal with nans in reg map
-    regs_np_flat[np.isnan(regs_np_flat)] = 0
+    converted['flattened_R'][np.isnan(converted['flattened_R'])] = 0
 
-    world_shape = fracs_numpy[0].shape
+    world_shape = converted['suit'][0].shape
 
-    return (world_shape, fracs_np_3D, pyields_np_flat, dm_np_flat, dm_2D,
-            sm_np, regs_np_flat)
+    return world_shape, converted
 
 def compute_irrigated_yield(input_rasters, nonraster_inputs):
     """
@@ -549,6 +612,9 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
     non_raster_inputs : dict
                        dict containing the same items as that returned by
                        setup.
+    ir_yields : np.ndarray
+                array of shape (N_REG, NFGC) containing the regional crop
+                yields of all irrigated crops
     """
 
     # map management facs, grazing intensity, demand ratios
@@ -573,7 +639,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
     pot_yields = compute_potential_yield(fracs_r1, input_rasters, mapped_data, nonraster_inputs)
 
     # (start LUE) computing (of) yield and sdp factors
-    yield_facs, sdp_facs, is_cropland = compute_additional_maps(input_rasters, mapped_data,
+    yield_facs, sdp_facs, is_cropland = compute_additional_rasters(input_rasters, mapped_data,
                                                                 nonraster_inputs)
 
     # save first-stage crop reallocation, potential yield and is_cropland tiffs
@@ -584,32 +650,38 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
             wt.write_raster(raster, f'pot_yields_{crop}')
         wt.write_raster(is_cropland, f'is_cropland')
 
-    shp, f_3D, py_np, d_np, dm_2D, s_np, r_np = prepare_for_np(fracs_r1, pot_yields,
-                                                               mapped_data['demand_ratios'],
-                                                               input_rasters['R'],
-                                                               input_rasters['suit'])
+    # define dictionary of rasters to be converted to np.ndarray format
+    rasters_for_numpy = {'fracs':fracs_r1, 'pot_yields':pot_yields,
+                         'dem_rats':mapped_data['demand_ratios'], 'R':input_rasters['R'],
+                         'suit':input_rasters['suit']}
+
+    shp, np_rasters = prepare_for_np(rasters_for_numpy)
 
     print(f"map shape: {shp}")
 
     ############################## NUMPY SECTION ####################################
     # de-NaN
-    integrands = ntm.denan_integration_input(py_np)
+    integrands = ntm.denan_integration_input(np_rasters['flattened_yields'])
 
     # integrate
-    integrated_yields, demands_met, regional_prod = ntm.integrate_r1_fractions(integrands, r_np,
-                                                                               dm_2D, s_np)
+    integrated_yields, demands_met, regional_prod = ntm.integrate_r1_fractions(integrands,
+                                                                               np_rasters['flattened_R'],
+                                                                               np_rasters['dem_rats'],
+                                                                               np_rasters['suit'])
 
     if prm.CHECK_IO:
-        wt.write_np_raster(f'R1_integration_crop', integrated_yields)
-        wt.write_np_raster(f'numpified_suitmap', s_np)
-        for crop in range(py_np.shape[0]):
-            wt.write_np_raster(f'R1_integrands_{crop}', np.reshape(py_np[crop, :], shp))
+        wt.write_np_raster('R1_integration_crop', integrated_yields)
+        wt.write_np_raster('numpified_suitmap', np_rasters['suit'])
+        for crop in range(np_rasters['flattened_yields'].shape[0]):
+            wt.write_np_raster(f'R1_integrands_{crop}',
+                               np.reshape(np_rasters['flattened_yields'][crop, :], shp))
         np.save('outputs\\regional_prods_R1', regional_prod)
 
     # get rid of fractions where demand has already been met
-    fracs_r2 = ntm.rework_reallocation(f_3D, demands_met, r_np)
+    fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'], demands_met,
+                                       np_rasters['flattened_R'])
 
-    # numpify/flatten inputs for integration-allocation
+    # numpify/flatten inputs for integration-allocation - NEED TO SOMEHOW PUT THIS IN A FUNCTION
     yield_facs_flat = np.asarray([lfr.to_numpy(yf).flatten() for yf in yield_facs])
     sdpfs = np.asarray([lfr.to_numpy(sdpf).flatten() for sdpf in sdp_facs])
     fracs_r2_flat = ntm.flatten_rasters(fracs_r2)
@@ -629,7 +701,9 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
 
     # call integration allocation on existing cropland. NB: irr yields are initial regional prod
     fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs_denan, yfs_denan, fracs_r2_denan,
-                                                            r_np, s_np,reg_demands, d_np,
+                                                            np_rasters['flattened_R'],
+                                                            np_rasters['suit'], reg_demands,
+                                                            np_rasters['dem_rats'],
                                                             is_cropland_flat, shp,
                                                             initial_reg_prod=ir_yields)
 
