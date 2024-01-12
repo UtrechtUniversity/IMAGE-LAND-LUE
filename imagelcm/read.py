@@ -76,7 +76,7 @@ def read_raster(res, file_name, data_dir="data\\"):
 
     return raster
 
-def read_raster_np(res, file_name, data_dir="data\\"):
+def read_raster_np(res, file_name, data_dir="data\\", target_dtype='float'):
     """
     Reads rasters of specified resolution into LUE VIA XARRAY AND NUMPY!
     
@@ -88,6 +88,8 @@ def read_raster_np(res, file_name, data_dir="data\\"):
                 name of the raster file, including the extension
     data_dir : str, default = 'data\\'
                relative path to the file
+    target_dtype : str, default = 'float'
+                   desired datatype of the values in the returned raster
     
     Returns
     -------
@@ -120,19 +122,21 @@ def read_raster_np(res, file_name, data_dir="data\\"):
     raster = lfr.from_numpy(raster_np, shape) # pylint: disable=no-member
 
     # ensure datatype is float, not int
-    if raster.dtype==np.int32:
+    if target_dtype=='float' and raster.dtype==np.int32:
         raster = lfr.cast(raster, np.float32)  # pylint: disable=no-member
+    elif target_dtype=='int' and raster.dtype!=np.int32:
+        raster = lfr.cast(raster, np.int32)  # pylint: disable=no-member
+    elif target_dtype not in ('float', 'int'):
+        raise ValueError("target_dtype must have a string value of <int> or <float>")
 
     return raster
 
-def read_input_rasters(ir_rf=False, data_dir="data\\"):
+def read_input_rasters(data_dir="data\\"):
     """
     Reads IMAGE-LAND's raster inputs and returns them as a dictionary.
     
     Parameters
     ----------
-    ir_rf : Bool, default=False
-            whether the LCM handles irrigated cropland
     data_dir : string, default = 'data\\'
                relative path to the file
 
@@ -146,41 +150,29 @@ def read_input_rasters(ir_rf=False, data_dir="data\\"):
     """
 
     # read in constant maps
-    greg = read_raster_np(5, "GREG_5MIN.nc")
+    # greg = read_raster_np(5, "GREG_5MIN.nc", target_dtype='int')
+    greg = read_raster_np(5, "greg_5min_int.nc", target_dtype='int')
     glct = read_raster_np(5, "GLCT.NC")
     gsuit = read_raster_np(5, "gsuit_new_world.nc")
     garea = read_raster_np(5, "gareacell.nc")
 
     grmppc_maps = []
     fractions = []
-    for crop in range(prm.NGFC): # pylint: disable=no-member
-        if not ir_rf:
-            # read in crop+1 from gfrac for each crop, because crop 0 is grass (reads IR and RF)
-            gfrac_rf = read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac\\")
-            gfrac_ir = read_raster_np(5, f"gfrac{crop+21}.nc", data_dir=data_dir+"gfrac\\")
-
-            # combine rain-fed and irrigated
-            fractions.append(gfrac_rf + gfrac_ir)
-
-            # read in potential productivity maps
-            grmppc_rf = read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc\\")
-            grmppc_ir = read_raster(5, f"grmppc{crop+21}_5MIN.tif", data_dir=data_dir+"grmppc\\")
-
-            grmppc_maps.append((grmppc_rf+grmppc_ir)/2.)
+    for crop in range(prm.NGFBFC): # pylint: disable=no-member
+        fractions.append(read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac\\"))
+        grmppc_maps.append(read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc\\"))
 
     input_rasters = {'R':greg, 'suit':gsuit, 'A':garea, 'p_c':grmppc_maps, 'f':fractions,
                      'lct':glct}
 
     return input_rasters
 
-def read_nonraster_inputs(ir_rf=False, data_dir="data\\"):
+def read_nonraster_inputs(data_dir="data\\"):
     """
     Reads IMAGE-LAND's non-raster inputs and returns them as a dictionary.
 
     Parameters
     ----------
-    ir_rf : Bool, default=False
-            whether the LCM handles irrigated cropland
     data_dir : string, default = 'data\\'
                relative path to the file
 
@@ -199,12 +191,7 @@ def read_nonraster_inputs(ir_rf=False, data_dir="data\\"):
     """
 
     # max productivity for each crop mean of ir and r-f; divided by 10 (kg/ha to tons/km^2)
-    max_pr_rf = np.loadtxt(f"{data_dir}MAXPR.txt")[1:prm.NGFC] # pylint: disable=no-member
-    max_pr_ir = np.loadtxt(f"{data_dir}MAXPR.txt")[prm.NGFC+prm.NBC:] # pylint: disable=no-member
-
-    if not ir_rf:
-        max_pr = np.concatenate(([np.loadtxt(f"{data_dir}MAXPR.txt")[0]], 
-                                 np.mean(np.stack([max_pr_rf, max_pr_ir]), axis=0) / 10))
+    max_pr = np.loadtxt(f"{data_dir}MAXPR.txt") / 10
 
     # read in management factor and frharvcomb [ASSUMED CONSTANT!!!]
     m_fac = np.load(f"{data_dir}MF.npy")[0, :, :]

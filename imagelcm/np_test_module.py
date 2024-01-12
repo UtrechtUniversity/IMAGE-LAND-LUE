@@ -11,7 +11,7 @@ not affect the behaviour of the functions as such.
 # import time
 from math import ceil
 import numpy as np
-# import parameters as prm
+import parameters as prm
 
 from read import check_wdir
 import write as wt
@@ -287,7 +287,7 @@ def denan_integration_input(array, dtype='float'):
     
     return new_array
 
-def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, save=False):
+def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, save=False, ir_yields=None):
     """
     Integrates fractions returned by the first reallocation of cropland
 
@@ -305,6 +305,9 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
                   cells in a given region)
     suit_map : np.ndarray
                2D np array containing the suitabilities for each cell
+    ir_yields : np.ndarray, default = None
+                array of shape (NFC, N_REG) containing the total regional
+                yields for all irrigated crops in all regions
     
     Returns
     -------
@@ -333,11 +336,17 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
     # convert nans to zeros
     integrands[np.isnan(integrands)] = 0.0
 
-    # loop through cells, from high suitability to low
+    # initialise regional prod array
     if nr<27:
         regional_prod = np.zeros((nr, nc+1))
     else:
-        regional_prod = np.zeros((26, nc+1))
+        regional_prod = np.zeros((prm.N_REG, nc+1))
+
+    # take into account irrigated crop yields, if applicable
+    if ir_yields is not None:
+        regional_prod[:, 1:] = ir_yields
+
+    # loop through cells, from high suitability to low
     integrated_yields = np.zeros_like(integrands)
     for ind in sorted_inds:
         reg = regs_flat[ind]
@@ -403,8 +412,8 @@ def rework_reallocation(fracs_r1, demands_met, regs):
     return fracs_r2
 
 def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_flat, suit_map,
-                           reg_prod, reg_demands, dems_flat, is_cropland, shape, expansion=False,
-                           save=False):
+                           reg_demands, dems_flat, is_cropland, shape, expansion=False,
+                           save=False, initial_reg_prod=None):
     """
     Allocates new land (or remaining cropland fracs) based on summed yield
 
@@ -417,6 +426,10 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                       case that the function is called to expand cropland
 
     """
+    if initial_reg_prod is None:
+        reg_prod = np.zeros((prm.N_REG, prm.NGFC))
+    else:
+        reg_prod = initial_reg_prod.copy()
 
     # map of cells that can be changed (if expansion, then non-cropland; if not, then cropland)
     cells_relevant = np.logical_xor(is_cropland, expansion)
@@ -481,7 +494,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     # function twice - and the first time, to rejig existing computed fractions, will need the
     # is_cropland boolean as an input.
 
-    nr = min(reg, 26)
+    nr = min(reg, prm.N_REG)
 
     # save output arrays
     if save:
@@ -518,7 +531,7 @@ def flatten_rasters(raster_like):
 
     return flattened_raster_like
 
-def compute_largest_fraction_np(fracs, nr, save=False, nan_map=None):
+def compute_largest_fraction_np(fracs, nr, c_bool, save=False, nan_map=None):
     """
     Finds crop with largest fraction (and what the fraction is), cellwise
 
@@ -548,6 +561,9 @@ def compute_largest_fraction_np(fracs, nr, save=False, nan_map=None):
 
     # turn results from all-nan slices to nan (most likely water)
     mac[mac==-1], mfrac[mfrac==-1] = np.nan, np.nan
+
+    # make non-cropland have value -1
+    mac[~c_bool], mfrac[~c_bool] = -1, -1.
 
     if nan_map is not None:
         mac[nan_map] = np.NaN

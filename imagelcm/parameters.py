@@ -5,6 +5,9 @@ Defines key model parameters.
 # whether IMAGE-LAND-LUE is running independently of the rest of IMAGE
 STANDALONE = True
 
+# map shape
+SHP = (2160, 4320)
+
 # number of food crops
 NFC = 16
 
@@ -24,11 +27,14 @@ NGFBFC = 38
 NGFBC = 22
 
 # same, but without grass
-NFBF = 21
+NFBC = 21
 
 # number of grazing systems
 NGS = 2
 NGST = NGS + 1 # NGS + 'total'
 
+# number of regions (excl. greenland)
+N_REG = 26
+
 # whether to print inputs and ouputs throughout the model for debugging
-CHECK_IO = True
+CHECK_IO = False
