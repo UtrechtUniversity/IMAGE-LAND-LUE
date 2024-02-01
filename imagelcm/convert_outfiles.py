@@ -1,8 +1,8 @@
 """Converts agrprod.out files."""
 
 import numpy as np
-
 import parameters as prm
+# import os
 
 def convert_crop_outfiles(crop_type):
     """

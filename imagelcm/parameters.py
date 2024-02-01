@@ -5,6 +5,9 @@ Defines key model parameters.
 # whether IMAGE-LAND-LUE is running independently of the rest of IMAGE
 STANDALONE = True
 
+# epsilon
+EPS = 1e-5
+
 # map shape
 SHP = (2160, 4320)
 

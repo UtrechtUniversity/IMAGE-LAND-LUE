@@ -36,6 +36,11 @@ def setup():
     input_rasters = rd.read_input_rasters()
     nonraster_inputs = rd.read_nonraster_inputs()
 
+    # initial values of mf, fharvcomb and fraz intensity
+    nonraster_inputs['MF'] = nonraster_inputs['MF_all'][0, :, :]
+    nonraster_inputs['GI'] = nonraster_inputs['GI_all'][0, :, :]
+    nonraster_inputs['FH'] = nonraster_inputs['FH_all'][0, :, :]
+
     # compute regional boolean maps
     greg = input_rasters["R"]
     reg_bools = []
@@ -77,6 +82,8 @@ def return_demand_rasters(demands, greg, r_bools, timestep):
 
     for crop in range(17):
         d_map_t = lfr.cast(greg, np.float32)
+        # ensure 0s in eg. Greenland
+        d_map_t = lfr.where((d_map_t>prm.N_REG)|(d_map_t<1), 0., d_map_t)
         print(f"loading demand for crop {crop}")
         for reg in range(prm.N_REG):
             local_d_t = d_t[crop, reg]
@@ -115,14 +122,20 @@ def return_demand_ratios(demands, greg, r_bools, timestep):
     setup
     """
 
-    d_t = demands[:, timestep, :]
-    d_tm1 = demands[:, timestep-1, :]
+    d_t = demands[timestep, :, :]
+    d_tm1 = demands[timestep-1, :, :]
+
+    # NaN prevention: as in original IMAGE-LAND, 0 previous demand => dem ratio is set to 0
+    d_t[d_tm1==0] = 0.
+    d_tm1[d_tm1==0] = 1.
 
     ratio_dict = {}
 
     for crop in range(prm.NGFC):
         dr_t = lfr.cast(greg, np.float32)
         print(f"loading demand for crop {crop}")
+        # ensure 0s in eg. Greenland
+        dr_t = lfr.where((dr_t>prm.N_REG)|(dr_t<1), 0., dr_t)
         for reg in range(prm.N_REG):
             local_ratio = d_t[crop, reg] / d_tm1[crop, reg]
             # if in correct region, value in every cell is equal to the demand in that region
@@ -207,7 +220,7 @@ def return_mf_maps(mfs, greg, r_bools):
 
 def isolate_cropland(input_rasters):
     """
-    Isolates existing cropland using land cover type raster.
+    Finds extent of existing cropland using land cover type raster.
 
     Parameters
     ----------
@@ -227,12 +240,9 @@ def isolate_cropland(input_rasters):
     --------
     read.read_input_rasters                 
     """
-    new_rasters = input_rasters
 
     # find cropland boolean raster
     is_cropland = input_rasters['lct'] == 1
-
-    new_rasters['is_cropland'] = is_cropland
 
     # # isolate current cropland for every crop fraction
     # cc_frs = []
@@ -241,7 +251,7 @@ def isolate_cropland(input_rasters):
 
     # new_rasters['current_cropland'] = cc_frs
 
-    return new_rasters
+    return is_cropland
 
 def get_irrigated_boolean(input_rasters):
     """
@@ -264,7 +274,6 @@ def get_irrigated_boolean(input_rasters):
     isolate_cropland
     read.read_input_rasters
     """
-    new_rasters = input_rasters
 
     fractions = input_rasters['f']
     has_irrigated = fractions[prm.NGFBC] > 0
@@ -304,7 +313,7 @@ def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
 
     return mapped_data
 
-def compute_largest_fraction(fracs, is_cropland, save=False):
+def compute_largest_fraction(fracs, is_cropland, save=False, timestep=0):
     """
     Finds the largest crop fraction and the crop it belongs to
 
@@ -336,8 +345,8 @@ def compute_largest_fraction(fracs, is_cropland, save=False):
         ma_crop = lfr.where(current_crop_bigger, crop, ma_crop)
 
     if save:
-        wt.write_raster(ma_frac, 'mafrac')
-        wt.write_raster(ma_crop, 'mac')
+        wt.write_raster(ma_frac, f'mafrac_{timestep}')
+        wt.write_raster(ma_crop, f'mac{timestep}')
 
     return ma_frac, ma_crop
 
@@ -371,15 +380,16 @@ def reallocate_cropland_initial(input_rasters, mapped_data):
     cf1 = fractions[0] * mapped_data['demand_ratios']['crop0'] / mapped_data['GI_map']
     cf3 = fractions[0]
     for crop in range(1, prm.NGFC):
-        cf1 += fractions[crop] * mapped_data['demand_ratios'][f'crop{crop}'] / mapped_data['MF_maps'][crop-1]
+        cf1 += (fractions[crop]
+                * mapped_data['demand_ratios'][f'crop{crop}'] / mapped_data['MF_maps'][crop])
         cf3 += fractions[crop]
 
     # compute new fractions from cf_1 and cf_3, as well as the sum of the new fractions
     new_fractions = []
     cf_ratio = cf3 / cf1
     for crop in range(1, prm.NGFC):
-        new_fraction = (fractions[crop] * mapped_data['MF_maps'][crop-1]
-                        * mapped_data['demand_ratios'][f'crop{crop}'] * cf_ratio)
+        new_fraction = (fractions[crop]  * mapped_data['demand_ratios'][f'crop{crop}']
+                        / mapped_data['MF_maps'][crop] * cf_ratio)
         new_fractions.append(new_fraction)
 
         # update sum of fractions
@@ -416,44 +426,61 @@ def reallocate_cropland_initial(input_rasters, mapped_data):
 
 def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs):
     """
-    Compute potential yield raster-like LUE arrays
+    Compute potential yield raster-like LUE arrays in kT
     """
 
     grmppc = input_rasters['p_c']
     max_pr = nonraster_inputs['M']
     garea = input_rasters['A']
-    FH = mapped_data['FH_maps']
-    MF_maps = mapped_data['MF_maps']
-    GI_map = mapped_data['GI_map']
+    f_harv = mapped_data['FH_maps']
+    mf_maps = mapped_data['MF_maps']
+    gi_map = mapped_data['GI_map']
 
-    pot_yields = [fracs[crop] * grmppc[crop] * max_pr[crop] * garea * FH[crop] * MF_maps[crop]
-                 for crop in range(1, prm.NGFC)]
-    pot_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * GI_map * FH[0] * MF_maps[0])
+    # crop-1 for f_harv as it has no grass value [NB: MF value for grass not used]
+    pot_yields = [fracs[crop] * grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1]
+                  * mf_maps[crop] / 1000 for crop in range(1, prm.NGFC)]
+    pot_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * gi_map)
 
     return pot_yields
 
 def compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs):
     """
     Computes yield factor, sdp factor and cropland bool
+
+    PARAMETERS
+    ----------
+    input_rasters
+    mapped_data
+    nonraster_inputs
+
+    RETURNS
+    -------
+    yield_facs : list
+                 list of lue PartitionedArrays containing the factor by
+                 which to multiply crop fractions to compute the yield
+                 of the crop in that cell in [kT] ([Gg])
+    sdp_facs : list
+               list of lue PartitionedArrays containing the factor by
+               which to multiply remaining crop demands, which can in turn
+               be summed to compute the quantity known as sdempr.
+               [sdp_facs] = [1000km^2 / T]
     """
 
     grmppc = input_rasters['p_c']
     max_pr = nonraster_inputs['M']
     garea = input_rasters['A']
-    FH = mapped_data['FH_maps']
-    MF_maps = mapped_data['MF_maps']
-    GI_map = mapped_data['GI_map']
-    glct = input_rasters['lct']
+    f_harv = mapped_data['FH_maps']
+    mf_maps = mapped_data['MF_maps']
+    gi_map = mapped_data['GI_map']
 
-    yield_facs = [grmppc[crop] * max_pr[crop] * garea * FH[crop] * MF_maps[crop]
+    # crop-1 for f_harv as it has no grass value [NB: MF value for grass not used]
+    yield_facs = [grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1] * mf_maps[crop] / 1000
                  for crop in range(1, prm.NGFC)]
-    yield_facs.insert(0, grmppc[0] * max_pr[0] * garea * GI_map * MF_maps[0])
+    yield_facs.insert(0, grmppc[0] * max_pr[0] * garea * gi_map)
 
     sdp_facs = [1000 * grmppc[crop] / max_pr[crop] for crop in range(prm.NGFC)]
 
-    is_cropland = glct == 1
-
-    return yield_facs, sdp_facs, is_cropland
+    return yield_facs, sdp_facs
 
 def raster_s_to_np(raster_s, is_list=False, flatten=False):
     """
@@ -478,7 +505,7 @@ def raster_s_to_np(raster_s, is_list=False, flatten=False):
 
     if is_list:
         if flatten:
-            numpy_arrs = [lfr.to_numpy(arr).flatten for arr in raster_s]
+            numpy_arrs = [lfr.to_numpy(arr).flatten() for arr in raster_s]
         else:
             numpy_arrs = [lfr.to_numpy(arr) for arr in raster_s]
         out = np.asarray(numpy_arrs)
@@ -528,32 +555,34 @@ def prepare_for_np(to_be_converted):
     # dm_2D = np.asarray(dm_numpy)
     # dm_np_flat = np.asarray([dn.flatten() for dn in dm_numpy])
 
-    converted['dem_rats'] = raster_s_to_np(to_be_converted['dem_rats'], is_list=True)
-    converted['dem_rats_flat'] = raster_s_to_np(to_be_converted['dem_rats'], is_list=True,
+    converted['dem_rats'] = raster_s_to_np(to_be_converted['dem_rats'].values(), is_list=True)
+    converted['dem_rats_flat'] = raster_s_to_np(to_be_converted['dem_rats'].values(), is_list=True,
                                                      flatten=True)
+
+    UNIQUE = np.unique(converted['dem_rats_flat'])
 
     # sm_np = lfr.to_numpy(suitmap) # don't flatten suitmap yet
     converted['suit'] = raster_s_to_np(to_be_converted['suit'])
 
     # regs_np_flat = lfr.to_numpy(regs).flatten()
-    converted['R_flat'] = raster_s_to_np(to_be_converted['suit'], flatten=True)
+    converted['R_flat'] = raster_s_to_np(to_be_converted['R'], flatten=True)
 
     # deal with nans in reg map
     converted['R_flat'][np.isnan(converted['R_flat'])] = 0
 
     converted['yf_flat'] = raster_s_to_np(to_be_converted['yf'], is_list=True, flatten=True)
 
-    converted['spdf_flat'] = raster_s_to_np(to_be_converted['spdf'], is_list=True,
+    converted['sdpf_flat'] = raster_s_to_np(to_be_converted['sdpf'], is_list=True,
                                                  flatten=True)
 
     converted['is_cropland'] = raster_s_to_np(to_be_converted['is_cropland'])
     converted['is_cropland_flat'] = raster_s_to_np(to_be_converted['is_cropland'], flatten=True)
 
-    world_shape = converted['suit'][0].shape
+    world_shape = converted['suit'].shape
 
     return world_shape, converted
 
-def back_to_lue(arr):
+def back_to_lue(arr, dtype='float'):
     """
     Converts np arrays (mostly new crop fractions) back to the LUE format
 
@@ -568,13 +597,15 @@ def back_to_lue(arr):
               if arr is 2D, returns PartitionedArray; if arr is 3D,
               returns a list of PartionedArrays
     """
+    if dtype=='float':
+        arr = arr.astype(np.float32)
 
     shp = arr.shape
     if len(shp)==3:
-        raster_shape = shp[1:]
+        raster_shape = (shp[1], shp[2]/2)
         lue_out = [lfr.from_numpy(arr[ind, :, :], raster_shape) for ind in range(shp[0])]
     elif len(shp)==2:
-        lue_out = lfr.from_numpy(arr, shp)
+        lue_out = lfr.from_numpy(arr, (shp[0], shp[1]/2))
     else:
         raise ValueError("back_to_lue() input must be a 2- or 3-dimensional array ")
 
@@ -602,17 +633,27 @@ def update_lcts(fracs, glct):
                grid cell
     """
 
-    # copmpute updated cropland boolean
-    is_cropland = glct == -15 # initially false
-    for crop in range(prm.NGFBFC):
+    print(glct)
+
+    # compute updated cropland boolean
+    # for crop in range(prm.NGFBFC):
+    for crop in range(prm.NGFC):
         if (0<crop<prm.NGFC) or crop>prm.NFBC: # if not biofuel
-            is_cropland = is_cropland | (fracs[crop] > 0.)
+            if crop==1:
+                is_cropland = fracs[crop] > 0
+            else:
+                is_cropland = is_cropland | (fracs[crop] > 0)
+
+    print(is_cropland)
 
     # ensure that cropland really is cropland
-    new_glct = lfr.where(is_cropland, 1, glct)
+    new_glct = lfr.where(is_cropland, 1., glct) # this is where something goes wrong
 
     # ensure that newly abandoned cropland becomes regrowth forest (abandoning)
-    new_glct = lfr.where((~is_cropland)&(glct==1), 4, new_glct)
+    not_cropland = ~is_cropland
+    perceived_cropland = glct==1
+    newly_abandoned_cropland = not_cropland & perceived_cropland
+    new_glct = lfr.where(newly_abandoned_cropland, 4., new_glct)
 
     return is_cropland, new_glct
 
@@ -655,8 +696,8 @@ def compute_crop_areas(fracs, garea, regions):
         crop_areas[corresponding_regions-1, ind+1] = u
 
     # include regional/agricultural totals
-    crop_areas[-1, :-1] = np.sum(regional_areas[:, :-1], axis=1)
-    crop_areas[-1, -1] = regional_areas[-1, :-1].sum()
+    crop_areas[-1, :-1] = np.sum(crop_areas[:, :-1], axis=0)
+    crop_areas[-1, -1] = crop_areas[-1, :-1].sum()
 
     return crop_areas
 
@@ -677,7 +718,7 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
     -------
     ir_yields : np.ndarray
                 array of shape (NGFC, N_REG) containing the total regional
-                yields for all irrigated crops in all regions
+                yields for all irrigated crops in all regions, in [kT]
     """
 
     fracs = input_rasters['f']
@@ -707,15 +748,16 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
         ir_yields[corresponding_regions-1, ind+1] = u
 
     # compute true yields by multiplying ir_yields by M, MF and FH (reshaped for multiplication)
-    ir_yields[:, 1:] *= (np.stack([max_pr[prm.NGFBC:] for _ in range(prm.N_REG)], 0)
-                  * np.swapaxes((nonraster_inputs['MF'][1:prm.NGFC, :]
-                                 * nonraster_inputs['FH'][prm.NFBC:, :]), 0, 1))
+    ir_yields[:, 1:] *= (np.stack([max_pr[prm.NGFBC:] for _ in range(prm.N_REG)], 0) / 1000
+                         * np.swapaxes((nonraster_inputs['MF'][1:prm.NGFC, :]
+                                        * nonraster_inputs['FH'][prm.NFBC:, :]), 0, 1))
 
     np.save('outputs\\ir_yields', ir_yields)
 
     return ir_yields
 
-def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
+def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yields=None,
+                             ir_bool=None):
     """
     Runs the relevant functions to re-allocate all cropland once
 
@@ -730,10 +772,16 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
     ir_yields : np.ndarray
                 array of shape (N_REG, NFGC) containing the regional crop
                 yields of all irrigated crops
+
+    RETURNS
+    -------
+    new_rasters : dict
+    reg_prod_updated : np.ndarray
+                       crop production per region
     """
 
     # map management facs, grazing intensity, demand ratios
-    mapped_data = map_tabulated_data(input_rasters, nonraster_inputs)
+    mapped_data = map_tabulated_data(input_rasters, nonraster_inputs, timestep)
 
     if prm.CHECK_IO:
         for key, value in mapped_data.items():
@@ -754,7 +802,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
     pot_yields = compute_potential_yield(fracs_r1, input_rasters, mapped_data, nonraster_inputs)
 
     # (start LUE) computing (of) yield and sdp factors
-    yield_facs, sdp_facs, is_cropland = compute_additional_rasters(input_rasters, mapped_data,
+    yield_facs, sdp_facs = compute_additional_rasters(input_rasters, mapped_data,
                                                                 nonraster_inputs)
 
     # save first-stage crop reallocation, potential yield and is_cropland tiffs
@@ -763,13 +811,13 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
             wt.write_raster(raster, f'R1_crop_{crop}')
         for crop, raster in enumerate(pot_yields):
             wt.write_raster(raster, f'pot_yields_{crop}')
-        wt.write_raster(is_cropland, f'is_cropland')
+        wt.write_raster(input_rasters['is_cropland'], 'is_cropland')
 
     # define dictionary of rasters to be converted to np.ndarray format
     rasters_for_numpy = {'fracs':fracs_r1, 'pot_yields':pot_yields,
                          'dem_rats':mapped_data['demand_ratios'], 'R':input_rasters['R'],
                          'suit':input_rasters['suit'], 'yf':yield_facs, 'sdpf':sdp_facs,
-                         'is_cropland':is_cropland}
+                         'is_cropland':input_rasters['is_cropland']}
 
     shp, np_rasters = prepare_for_np(rasters_for_numpy)
 
@@ -777,13 +825,15 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
 
     ############################## NUMPY SECTION ####################################
     # de-NaN
+    np_rasters['yields_flat']
+    print(np_rasters['yields_flat'].dtype)
     integrands = ntm.denan_integration_input(np_rasters['yields_flat'])
 
     # integrate
-    integrated_yields, demands_met, regional_prod = ntm.integrate_r1_fractions(integrands,
-                                                                               np_rasters['R_flat'],
-                                                                               np_rasters['dem_rats'],
-                                                                               np_rasters['suit'])
+    integrated_yields, dems_met, regional_prod = ntm.integrate_r1_fractions(integrands,
+                                                                            np_rasters['R_flat'],
+                                                                            np_rasters['dem_rats'],
+                                                                            np_rasters['suit'])
 
     if prm.CHECK_IO:
         wt.write_np_raster('R1_integration_crop', integrated_yields)
@@ -794,54 +844,68 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=None):
         np.save('outputs\\regional_prods_R1', regional_prod)
 
     # get rid of fractions where demand has already been met
-    fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'], demands_met,
-                                       np_rasters['R_flat'])
+    fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'], dems_met, np_rasters['R_flat'])
 
     # flatten inputs for integration-allocation
     fracs_r2_flat = ntm.flatten_rasters(fracs_r2)
 
-    # rearrange axes of tabulated demand_data
-    reg_demands = np.swapaxes(nonraster_inputs['d'], 1, 2)
+    # isolate appropriate timestep and rearrange axes of tabulated demand_data
+    reg_demands = np.swapaxes(nonraster_inputs['d'][timestep, :, :], 0, 1)
 
     # de-NaN
-    sdpfs_denan = ntm.denan_integration_input(np_rasters['spdf_flat'])
+    sdpfs_denan = ntm.denan_integration_input(np_rasters['sdpf_flat'])
     yfs_denan = ntm.denan_integration_input(np_rasters['yf_flat'])
     fracs_r2_denan = ntm.denan_integration_input(fracs_r2_flat)
 
+    if prm.CHECK_IO:
+        for crop in range(sdpfs_denan.shape[0]):
+            wt.write_np_raster(f'sdpf_{crop}', np.reshape(np_rasters['sdpf_flat'][crop, :], shp))
+            wt.write_np_raster(f'yf_{crop}', np.reshape(np_rasters['yf_flat'][crop, :], shp))
+
     # get irrigation boolean raster
-    irr_bool = lfr.to_numpy(get_irrigated_boolean(input_rasters))
+    ir_bool = lfr.to_numpy(ir_bool)
 
     # call integration allocation on existing cropland. NB: irr yields are initial regional prod
     fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs_denan, yfs_denan, fracs_r2_denan,
                                                             np_rasters['R_flat'],
                                                             np_rasters['suit'], reg_demands,
-                                                            np_rasters['dem_rats'],
-                                                            np_rasters['is_cropland_flat'], shp,
-                                                            initial_reg_prod=ir_yields)
+                                                            np_rasters['is_cropland'], shp,
+                                                            initial_reg_prod=ir_yields,
+                                                            expansion=False)
+
+    # determine whether expansion is necessary
+    demands_met = reg_prod_updated >= (reg_demands - prm.EPS)
+    expand = np.count_nonzero(demands_met) < demands_met.size
+
+    if expand:
+        fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs_denan, yfs_denan,
+                                                                fracs_r2_denan,
+                                                                np_rasters['R_flat'],
+                                                                np_rasters['suit'], reg_demands,
+                                                                np_rasters['is_cropland'], shp,
+                                                                initial_reg_prod=reg_prod_updated,
+                                                                expansion=True)
 
     # re-NaN
     should_be_nan = np.isnan(np_rasters['suit'])
     for crop in range(fracs_r3.shape[0]):
         fracs_r3[crop, should_be_nan] = np.nan
         wt.write_np_raster(f'new_fraction_{crop}', fracs_r3[crop, :, :])
+    print(np.unique(fracs_r3))
 
     # convert back to LUE
     new_fracs = back_to_lue(fracs_r3)
 
     # do land abandonment (cells w. 0 fractions for all crops & irrigation -> regr. forest (aband))
-    is_cropland, new_glct = update_lcts(input_rasters['glct'], new_fracs)
-
-    # compute crop areas
-    crop_areas =  compute_crop_areas(new_fracs, input_rasters['A'], input_rasters['R'])
-
-    # now this can be done with the LUE method!!!
-    # ntm.compute_largest_fraction_np(fracs_r3, prm.N_REG, is_cropland, save=True,
-    #                                 nan_map=should_be_nan)
+    is_cropland, new_glct = update_lcts(new_fracs, input_rasters['lct'])
 
     # save current mac, mafrac
-    compute_largest_fraction(new_fracs, is_cropland, save=True)
+    compute_largest_fraction(new_fracs, is_cropland, save=True, timestep=timestep)
 
-    # return some kind of dictionary?
+    # return as dictionary
+    new_rasters = {'fracs':new_fracs, 'lct':new_glct}
+
+    return new_rasters, reg_prod_updated
 
 @lfr.runtime_scope
 def main():
@@ -855,7 +919,8 @@ def main():
 
     start = time()
     input_rasters, nonraster_inputs = setup()
-    input_rasters = isolate_cropland(input_rasters)
+
+    input_rasters['is_cropland'] = isolate_cropland(input_rasters)
 
     # save initial crop fraction tifs
     if prm.CHECK_IO:
@@ -875,9 +940,39 @@ def main():
 
     # compute crop yields from irrigated land
     ir_yields = compute_irrigated_yield(input_rasters, nonraster_inputs)
+    ir_bool = get_irrigated_boolean(input_rasters)
+
+    # define timestep
+    timestep = 1
+
+    ##############################
+    # bit that should be looped...
+
+    # update mf, fharvcomb and graz intensity
+    nonraster_inputs['MF'] = nonraster_inputs['MF_all'][timestep-1, :, :]
+    nonraster_inputs['GI'] = nonraster_inputs['GI_all'][timestep-1, :, :]
+    nonraster_inputs['FH'] = nonraster_inputs['FH_all'][timestep-1, :, :]
 
     # allocate single timestep
-    allocate_single_timestep(input_rasters, nonraster_inputs, ir_yields=ir_yields)
+    new_rasters, reg_prod = allocate_single_timestep(input_rasters, nonraster_inputs, timestep,
+                                                     ir_yields=ir_yields, ir_bool=ir_bool)
+
+    # compute crop areas
+    crop_areas =  compute_crop_areas(new_rasters['fracs'], input_rasters['A'], input_rasters['R'])
+
+    # for raster in new_rasters['fracs']:
+    #     lfr.wait(raster)
+    # lfr.wait(new_rasters['lct'])
+
+    np.save(f'outputs\\reg_prod_{timestep}', reg_prod)
+    np.save(f'outputs\\crop_areas_{timestep}', crop_areas)
+
+    # update variables (new_rasters -> input_rasters)
+    input_rasters['f'] = new_rasters['fracs']
+    input_rasters['lct'] = new_rasters['lct']
+
+    timestep += 1
+    ##############################
 
     print(f"Time taken: {time()-start}")
 

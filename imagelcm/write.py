@@ -43,8 +43,8 @@ def write_np_raster(file_name, array, output_dir='outputs\\'):
     """
 
     shape = array.shape
-    for _ in range(5):
-        print(f'{file_name} shape: {shape}')
+    # print(f'{file_name} shape: {shape}')
+
     if len(shape)==3:
         for ind in range(shape[0]):
             lue_array = lfr.from_numpy(array[ind, :, :], shape[1:])

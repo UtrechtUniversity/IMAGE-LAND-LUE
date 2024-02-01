@@ -284,7 +284,7 @@ def denan_integration_input(array, dtype='float'):
         new_array[np.isnan(new_array)] = 0
     else:
         raise ValueError("dtype provided must be a string named 'int' or 'float'")
-    
+
     return new_array
 
 def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, save=False, ir_yields=None):
@@ -412,8 +412,8 @@ def rework_reallocation(fracs_r1, demands_met, regs):
     return fracs_r2
 
 def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_flat, suit_map,
-                           reg_demands, dems_flat, is_cropland, shape, expansion=False,
-                           save=False, initial_reg_prod=None):
+                           reg_demands, is_cropland, shape, save=False, initial_reg_prod=None,
+                           expansion=False):
     """
     Allocates new land (or remaining cropland fracs) based on summed yield
 
@@ -424,7 +424,6 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                       in each cell following the correction to the initial
                       cropland reallocation. Value defaults to None in the
                       case that the function is called to expand cropland
-
     """
     if initial_reg_prod is None:
         reg_prod = np.zeros((prm.N_REG, prm.NGFC))
@@ -432,56 +431,111 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
         reg_prod = initial_reg_prod.copy()
 
     # map of cells that can be changed (if expansion, then non-cropland; if not, then cropland)
-    cells_relevant = np.logical_xor(is_cropland, expansion)
+    cells_relevant = np.logical_xor(is_cropland.flatten(), expansion)
 
     # shape = regs.shape
     nc = yield_facs_flat.shape[0]
 
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map)
+    print(f'# NaNs in sorted_indices: {np.count_nonzero(np.isnan(sorted_inds))}')
 
     # compute demands met boolean (one value for each region, for each crop)
-    rdm = reg_prod >= reg_demands[1, : , :]
+    rdm = reg_prod >= reg_demands
 
-    # loop through cells, from high suitability to low
-    sdp = np.zeros_like(regs_flat)
-    extra_fracs = np.zeros_like(old_fracs_flat)
-    yields = np.zeros_like(old_fracs_flat)
+    # loop through cells, from high suitability to low-
+    extra_fracs = np.zeros_like(old_fracs_flat).astype(np.float32)
+    yields = np.zeros_like(old_fracs_flat).astype(np.float32)
     for ind in sorted_inds:
         reg = regs_flat[ind]
         # if in valid region and cell belongs to the appropriate category (cropland or not)
         if reg!=np.nan:
             reg = int(reg)
-            if 0<reg<27 and cells_relevant[ind]:
+            if 0<reg<=prm.N_REG and cells_relevant[ind]:
                 # find crops with demand already met - 'old' fraction must be 0
                 c_dm = np.where(rdm[reg-1, :])[0]
+                # print(f'first c_dm: {c_dm}')
                 old_fracs_flat[c_dm, ind] = 0.0
 
                 # store temporary updated regional production for current region
-                reg_prod_temp = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
+                reg_prod_temp = (reg_prod[reg-1, :]
+                                 + old_fracs_flat[:, ind] * yield_facs_flat[:, ind])
 
                 # store temporary regional demand met boolean array for current region and c_dm
-                rdm_temp = reg_prod_temp >= reg_demands[1, reg-1 , :]
+                rdm_temp = reg_prod_temp >= reg_demands[reg-1 , :]
                 c_dm = np.where(np.logical_and(rdm_temp, old_fracs_flat[:, ind]>0))[0]
-                # print(c_dm)
+                # print(f'second c_dm: {c_dm}')
 
                 # correct fractions which have just made regional production exceed demand
                 if len(c_dm):
-                    old_fracs_flat[c_dm, ind] = ((reg_demands[1, reg-1, c_dm] - reg_prod[reg-1, c_dm])
-                                                    / yield_facs_flat[c_dm, ind])
+                    relevant_yfs = yield_facs_flat[c_dm, ind]
+                    old_fracs_flat[c_dm, ind] = ((reg_demands[reg-1, c_dm] - reg_prod[reg-1, c_dm])
+                                                    / relevant_yfs)
+                    # set divide by 0 to 0
+                    old_fracs_flat[np.where(relevant_yfs==0)[0], ind] = 0.0
+
                     rdm[reg-1, c_dm] = True
 
                 # compute potential yield, regional prod boolean array and sum of fractions
                 yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
-                reg_prod += yields[:, ind]
+                reg_prod[reg-1, :] += yields[:, ind]
                 f_sum = old_fracs_flat[:, ind].sum()
-                # print(f_sum)
 
-                # remaining regional demand for crop
-                dem_remain = dems_flat[:, ind]-reg_prod[reg-1, :]
-                sdp[ind] = (dem_remain * sdp_facs_flat[:, ind]).sum()
-                extra_fracs[:, ind] = ((1-f_sum) * sdp_facs_flat[:, ind] / sdp[ind] * dem_remain)
+                # remaining regional demand for crop; 0 where demand met
+                dem_remain = reg_demands[reg-1, :] - reg_prod[reg-1, :]
+                dem_remain[np.where(rdm[reg-1, :])[0]] = 0.0
 
+                # compute 'sdempr'
+                sdp = (dem_remain * sdp_facs_flat[:, ind]).sum()
+
+                # allocate (rest of) new crop fractions (NOT GRASS!!!)
+                if sdp>prm.EPS:
+                    extra_fracs[1:, ind] = ((1-f_sum) * sdp_facs_flat[1:, ind] / sdp
+                                            * dem_remain[1:])
+
+                # find where production may exceed demand due to excess allocation in extra_fracs
+                reg_prod_temp = (reg_prod[reg-1, 1:]
+                                 + extra_fracs[1:, ind] * yield_facs_flat[1:, ind])
+                rdm_temp = reg_prod_temp >= reg_demands[reg-1 , 1:]
+                c_dm = np.where(np.logical_and(rdm_temp, extra_fracs[1:, ind]>0))[0] + 1
+
+                # where this is the case, decrease allocation accordingly
+                if len(c_dm):
+                    relevant_yfs = yield_facs_flat[c_dm, ind]
+                    extra_fracs[c_dm, ind] = ((reg_demands[reg-1, c_dm] - reg_prod[reg-1, c_dm])
+                                                    / relevant_yfs)
+                    # set divide by 0 to 0
+                    extra_fracs[np.where(relevant_yfs==0)[0], ind] = 0.0
+
+                    rdm[reg-1, c_dm] = True
+
+                # if there is remaining space in the cell, fill the remainder with grass
+                extra_fracs[np.isnan(extra_fracs[:, ind]), ind] = 0.0
+                diff = (1-f_sum) - extra_fracs[:, ind].sum()
+                if diff>prm.EPS:
+                    extra_fracs[0, ind] = diff
+
+                # compute and take into account extra fracs' contribution to production
+                extra_yields = extra_fracs[:, ind] * yield_facs_flat[:, ind]
+                # if extra_fracs[:, ind].sum()>0:
+                #     print(extra_fracs[:, ind])
+                #     print(extra_yields)
+                yields[:, ind] += extra_yields
+                reg_prod[reg-1, :] += extra_yields
+
+                # if reg==2 and f_sum<1-prm.EPS:
+                #     print(reg_demands[1, :] - reg_prod[1, :])
+                #     print(f_sum)
+                #     print(extra_fracs[:, ind])
+
+                # recalculate demands met boolean
+                rdm = reg_prod >= reg_demands
+
+        # break if demand met for all crops
+        if len(rdm.flatten())==len(np.where(rdm.flatten())[0]):
+            break
+
+    print(f'unique extra fracs: {np.unique(extra_fracs)}')
     new_fracs_flat = old_fracs_flat + extra_fracs
 
     # reshape into raster-like shape

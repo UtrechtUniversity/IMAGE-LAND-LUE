@@ -193,10 +193,10 @@ def read_nonraster_inputs(data_dir="data\\"):
     # max productivity for each crop mean of ir and r-f; divided by 10 (kg/ha to tons/km^2)
     max_pr = np.loadtxt(f"{data_dir}MAXPR.txt") / 10
 
-    # read in management factor and frharvcomb [ASSUMED CONSTANT!!!]
-    m_fac = np.load(f"{data_dir}MF.npy")[0, :, :]
-    graz_intens = np.load(f"{data_dir}GI.npy")[0, :, :]
-    fr_harv_comb = np.load(f"{data_dir}FH.npy")[0, :, :]
+    # read in management factor and frharvcomb
+    m_fac = np.load(f"{data_dir}MF.npy")
+    graz_intens = np.load(f"{data_dir}GI.npy")
+    fr_harv_comb = np.load(f"{data_dir}FH.npy")
 
     # load crop demands from .npy files
     food_demands = np.zeros((131, prm.NGFC, 26)) # pylint: disable=no-member
@@ -206,12 +206,7 @@ def read_nonraster_inputs(data_dir="data\\"):
     # make total grass demand as the zeroth crop entry of the food_demands array
     food_demands[:, 0, :] = grass_demands[:, 2, :].copy()
 
-    #for _ in range(1000000):
-    #print(grass_demands.shape)
-    #print(f"Length of grass[0, 2, :]: {len(grass_demands[0, 2, :])}")
-    #print(f"Number of elements agreeing: {np.sum(grass_demands[0, 0, :]==food_demands[0, 0, :])}")
-
-    nonraster_inputs = {'M':max_pr, 'MF':m_fac, 'GI':graz_intens, 'FH':fr_harv_comb,
-                         'd':food_demands}
+    nonraster_inputs = {'M':max_pr, 'd':food_demands, 'GI_all':graz_intens, 'MF_all':m_fac,
+                        'FH_all':fr_harv_comb}
 
     return nonraster_inputs
