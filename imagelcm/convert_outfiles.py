@@ -23,7 +23,7 @@ def convert_crop_outfiles(crop_type):
                               "n_crops": prm.NBC}}.get(crop_type)
 
     # read and decode data
-    with open(f"data\\{crop_attrs['name']}", 'rb') as file:
+    with open(f"data/{crop_attrs['name']}", 'rb') as file:
         data_read = file.read()
     data_str = data_read.decode()
 
@@ -52,7 +52,7 @@ def convert_crop_outfiles(crop_type):
             crop_demands[time_ind, crop, :] = np.asarray(block_crop).astype(np.float32)
 
     # save array as .npy binary file
-    np.save(f"data\\{crop_type}_crop_demands", crop_demands)
+    np.save(f"data/{crop_type}_crop_demands", crop_demands)
 
 def convert_management_outfiles(manage_type):
     """
@@ -74,7 +74,7 @@ def convert_management_outfiles(manage_type):
                          "n_crops": prm.NFBFC}}.get(manage_type)
 
     # read and decode data
-    with open(f"data\\{crop_attrs['name']}", 'rb') as file:
+    with open(f"data/{crop_attrs['name']}", 'rb') as file:
         data_read = file.read()
     data_str = data_read.decode()
 
@@ -102,4 +102,4 @@ def convert_management_outfiles(manage_type):
             management_values[time_ind, crop, :] = np.asarray(block_crop).astype(np.float32)
 
     # save array as .npy binary file
-    np.save(f"data\\{manage_type}", management_values)
+    np.save(f"data/{manage_type}", management_values)

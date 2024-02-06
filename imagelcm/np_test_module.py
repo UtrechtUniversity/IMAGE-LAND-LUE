@@ -69,14 +69,14 @@ def write_inputs(shape=(10, 20), nr=1, nc=3):
     check_wdir()
 
     # save input files
-    np.save(f"test_IO\\suitmap_{nr}_{nc}_{shape}", suit_map)
-    np.save(f"test_IO\\is_land_{nr}_{nc}_{shape}", is_land)
-    np.save(f"test_IO\\is_cropland_{nr}_{nc}_{shape}", is_cropland)
-    np.save(f"test_IO\\regions_{nr}_{nc}_{shape}", regs)
-    np.save(f"test_IO\\g_area_{nr}_{nc}_{shape}", grid_area)
-    np.save(f"test_IO\\initial_fractions_{nr}_{nc}_{shape}", fractions)
-    np.save(f"test_IO\\demands_{nr}_{nc}_{shape}", demands)
-    np.save(f"test_IO\\potprod_{nr}_{nc}_{shape}", potential_prod)
+    np.save(f"test_IO/suitmap_{nr}_{nc}_{shape}", suit_map)
+    np.save(f"test_IO/is_land_{nr}_{nc}_{shape}", is_land)
+    np.save(f"test_IO/is_cropland_{nr}_{nc}_{shape}", is_cropland)
+    np.save(f"test_IO/regions_{nr}_{nc}_{shape}", regs)
+    np.save(f"test_IO/g_area_{nr}_{nc}_{shape}", grid_area)
+    np.save(f"test_IO/initial_fractions_{nr}_{nc}_{shape}", fractions)
+    np.save(f"test_IO/demands_{nr}_{nc}_{shape}", demands)
+    np.save(f"test_IO/potprod_{nr}_{nc}_{shape}", potential_prod)
 
 def generate_fractions(shape, is_cropland, nc):
     """
@@ -176,9 +176,9 @@ def np_first_reallocation(shape=(10, 20), nr=1, nc=3):
 
     check_wdir()
 
-    regs = np.load(f"test_IO\\regions_{nr}_{nc}_{shape}.npy")
-    fractions = np.load(f"test_IO\\initial_fractions_{nr}_{nc}_{shape}.npy")
-    demands = np.load(f"test_IO\\demands_{nr}_{nc}_{shape}.npy")
+    regs = np.load(f"test_IO/regions_{nr}_{nc}_{shape}.npy")
+    fractions = np.load(f"test_IO/initial_fractions_{nr}_{nc}_{shape}.npy")
+    demands = np.load(f"test_IO/demands_{nr}_{nc}_{shape}.npy")
 
     # calculate ratio of last demand to this timestep's demand
     demand_ratios = demands[1, :, :] / demands[0, :, :]
@@ -203,7 +203,7 @@ def np_first_reallocation(shape=(10, 20), nr=1, nc=3):
     # fill in the remainder with grass
     new_fractions[0] = 1 - np.sum(new_fractions[1:], axis=0)
 
-    np.save(f"test_IO\\fractions_first_reallocation_{nr}_{nc}_{shape}", new_fractions)
+    np.save(f"test_IO/fractions_first_reallocation_{nr}_{nc}_{shape}", new_fractions)
 
 def return_npdemand_map(demand_ratios, regs, nr=1, nc=3):
     """
@@ -234,7 +234,7 @@ def return_npdemand_map(demand_ratios, regs, nr=1, nc=3):
         for reg in range(1, nr+1):
             demand_maps[crop][regs==reg] = demand_ratios[reg-1, crop]
 
-    np.save(f"test_IO\\demand_maps_{nr}_{nc}_{shape}", demand_maps)
+    np.save(f"test_IO/demand_maps_{nr}_{nc}_{shape}", demand_maps)
 
     return demand_maps
 
@@ -368,9 +368,9 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
 
     # save output arrays
     if save:
-        np.save(f"test_IO\\integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
-        np.save(f"test_IO\\demands_met_{nr}_{nc}_{shape}", demands_met)
-        np.save(f"test_IO\\regional_prods_{nr}_{nc}_{shape}", regional_prod)
+        np.save(f"test_IO/integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
+        np.save(f"test_IO/demands_met_{nr}_{nc}_{shape}", demands_met)
+        np.save(f"test_IO/regional_prods_{nr}_{nc}_{shape}", regional_prod)
 
     return integrated_maps, demands_met, regional_prod
 
@@ -407,7 +407,7 @@ def rework_reallocation(fracs_r1, demands_met, regs):
     fracs_r1[demands_met] = 0.0
     fracs_r2 = fracs_r1
 
-    np.save(f"test_IO\\fracs_second_reallocation_{nr}_{nc}_{shape}", fracs_r2)
+    np.save(f"test_IO/fracs_second_reallocation_{nr}_{nc}_{shape}", fracs_r2)
 
     return fracs_r2
 
@@ -553,7 +553,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     # save output arrays
     if save:
         wt.write_np_raster(f"new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
-        # np.save(f"test_IO\\new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
+        # np.save(f"test_IO/new_fraction_maps_{nr}_{nc-1}_{shape}", new_fracs)
 
     return new_fracs, reg_prod
 
@@ -623,8 +623,8 @@ def compute_largest_fraction_np(fracs, nr, c_bool, save=False, nan_map=None):
         mac[nan_map] = np.NaN
 
     if save:
-        np.save(f"test_IO\\mac_{nr}_{nc}_{shape}", mac)
-        np.save(f"test_IO\\mfrac_{nr}_{nc}_{shape}", mfrac)
+        np.save(f"test_IO/mac_{nr}_{nc}_{shape}", mac)
+        np.save(f"test_IO/mfrac_{nr}_{nc}_{shape}", mfrac)
         wt.write_np_raster('mac_1', mac)
         wt.write_np_raster('mfrac_1', mfrac)
 

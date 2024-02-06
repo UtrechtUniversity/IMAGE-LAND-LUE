@@ -4,7 +4,7 @@ Write output files from lue framework to netcdfs.
 import xarray as xr
 import lue.framework as lfr
 
-def write_raster(raster, var_name, output_dir='outputs\\'):
+def write_raster(raster, var_name, output_dir='outputs/'):
     """
     Writes rasters from LUE into netcdf format.
     
@@ -14,7 +14,7 @@ def write_raster(raster, var_name, output_dir='outputs\\'):
                 the raster to be written to disk
     var_name : str
                 name of the desired .nc file, excluding the extension
-    output_dir : str, default = 'output\\'
+    output_dir : str, default = 'output/'
                relative path to the file
     """
 
@@ -22,7 +22,7 @@ def write_raster(raster, var_name, output_dir='outputs\\'):
     # lfr.to_gdal(raster, f'{output_dir}{var_name}.nc')
     lfr.to_gdal(raster, f'{output_dir}{var_name}.tif')
 
-def check_format(var_name, data_dir='outputs\\'):
+def check_format(var_name, data_dir='outputs/'):
     """
     Checks that a netcdf file is in the right format.
     
@@ -30,14 +30,14 @@ def check_format(var_name, data_dir='outputs\\'):
     ----------
     var_name : str
                 name of the .nc file, excluding the extension
-    data_dir : str, default = 'output\\'
+    data_dir : str, default = 'output/'
                relative path to the file
     """
 
     da = xr.open_dataarray(f'{data_dir}{var_name}.nc')
     print(da)
 
-def write_np_raster(file_name, array, output_dir='outputs\\'):
+def write_np_raster(file_name, array, output_dir='outputs/'):
     """
     Converts np arrays to lue format and saves as tifs
     """

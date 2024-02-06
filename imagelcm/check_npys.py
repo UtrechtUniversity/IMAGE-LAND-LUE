@@ -18,26 +18,26 @@ regions = np.asarray(['CAN', 'US', 'MEX', 'R. CENT. AMER.', 'BR', 'R. SOU. AMER.
                       'Russia +', 'Middle East', 'India', 'Korea', 'China +', 'South East Asia',
                       'Indonesia +', 'Japan', 'Oceania', 'Rest of S. Asia', 'Rest of S. Africa'])
 
-MFs = np.load('data\\MF.npy')
-FHs = np.load('data\\FH.npy')
+MFs = np.load('data/MF.npy')
+FHs = np.load('data/FH.npy')
 
 print(MFs.shape)
 # print(MFs[0, :prm.NFC, :])
 
-R1_integration = np.load('outputs\\regional_prods_R1.npy')
+R1_integration = np.load('outputs/regional_prods_R1.npy')
 # print(R1_integration)
 
-irr_yield = np.load('outputs\\ir_yields.npy')
+irr_yield = np.load('outputs/ir_yields.npy')
 
 print(irr_yield[17, :])
 print(regions[np.argmax(irr_yield, axis=0)])
 print(np.max(irr_yield, axis=0))
 
-# greg = xr.open_dataarray('data\\GREG_5MIN.nc')
+# greg = xr.open_dataarray('data/GREG_5MIN.nc')
 # greg = greg.fillna(0)
 # greg = greg.astype(np.int32)
 
-# greg.to_netcdf('data\\greg_5min_int.nc')
+# greg.to_netcdf('data/greg_5min_int.nc')
 
 # print(R1_integration)
 

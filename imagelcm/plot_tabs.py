@@ -12,11 +12,11 @@ import parameters as prm
 
 check_wdir()
 
-crop_areas = np.load('outputs\\crop_areas_1.npy')
-reg_prod = np.load('outputs\\reg_prod_1.npy')
+crop_areas = np.load('outputs/crop_areas_1.npy')
+reg_prod = np.load('outputs/reg_prod_1.npy')
 
-food_dem = np.load('data\\food_crop_demands.npy')
-grass_dem = np.load('data\\grass_crop_demands.npy')
+food_dem = np.load('data/food_crop_demands.npy')
+grass_dem = np.load('data/grass_crop_demands.npy')
 
 food_prod = np.swapaxes(reg_prod[:, 1:], 0, 1)
 food_dem_1 = food_dem[1, :, :]

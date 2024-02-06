@@ -752,7 +752,7 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
                          * np.swapaxes((nonraster_inputs['MF'][1:prm.NGFC, :]
                                         * nonraster_inputs['FH'][prm.NFBC:, :]), 0, 1))
 
-    np.save('outputs\\ir_yields', ir_yields)
+    np.save('outputs/ir_yields', ir_yields)
 
     return ir_yields
 
@@ -841,7 +841,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
         for crop in range(np_rasters['yields_flat'].shape[0]):
             wt.write_np_raster(f'R1_integrands_{crop}',
                                np.reshape(np_rasters['yields_flat'][crop, :], shp))
-        np.save('outputs\\regional_prods_R1', regional_prod)
+        np.save('outputs/regional_prods_R1', regional_prod)
 
     # get rid of fractions where demand has already been met
     fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'], dems_met, np_rasters['R_flat'])
@@ -964,8 +964,8 @@ def main():
     #     lfr.wait(raster)
     # lfr.wait(new_rasters['lct'])
 
-    np.save(f'outputs\\reg_prod_{timestep}', reg_prod)
-    np.save(f'outputs\\crop_areas_{timestep}', crop_areas)
+    np.save(f'outputs/reg_prod_{timestep}', reg_prod)
+    np.save(f'outputs/crop_areas_{timestep}', crop_areas)
 
     # update variables (new_rasters -> input_rasters)
     input_rasters['f'] = new_rasters['fracs']

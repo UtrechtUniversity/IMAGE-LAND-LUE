@@ -36,7 +36,7 @@ def prepare_input_files():
     co.convert_management_outfiles('GI') # pylint: disable=no-member
     co.convert_management_outfiles('FH') # pylint: disable=no-member
 
-def read_raster(res, file_name, data_dir="data\\"):
+def read_raster(res, file_name, data_dir="data/"):
     """
     Reads rasters of specified resolution into LUE.
     
@@ -46,7 +46,7 @@ def read_raster(res, file_name, data_dir="data\\"):
           resolution of the raster to be read in
     file_name : str
                 name of the raster file, including the extension
-    data_dir : str, default = 'data\\'
+    data_dir : str, default = 'data/'
                relative path to the file
     
     Returns
@@ -76,7 +76,7 @@ def read_raster(res, file_name, data_dir="data\\"):
 
     return raster
 
-def read_raster_np(res, file_name, data_dir="data\\", target_dtype='float'):
+def read_raster_np(res, file_name, data_dir="data/", target_dtype='float'):
     """
     Reads rasters of specified resolution into LUE VIA XARRAY AND NUMPY!
     
@@ -86,7 +86,7 @@ def read_raster_np(res, file_name, data_dir="data\\", target_dtype='float'):
           resolution of the raster to be read in
     file_name : str
                 name of the raster file, including the extension
-    data_dir : str, default = 'data\\'
+    data_dir : str, default = 'data/'
                relative path to the file
     target_dtype : str, default = 'float'
                    desired datatype of the values in the returned raster
@@ -131,13 +131,13 @@ def read_raster_np(res, file_name, data_dir="data\\", target_dtype='float'):
 
     return raster
 
-def read_input_rasters(data_dir="data\\"):
+def read_input_rasters(data_dir="data/"):
     """
     Reads IMAGE-LAND's raster inputs and returns them as a dictionary.
     
     Parameters
     ----------
-    data_dir : string, default = 'data\\'
+    data_dir : string, default = 'data/'
                relative path to the file
 
     Returns
@@ -159,21 +159,21 @@ def read_input_rasters(data_dir="data\\"):
     grmppc_maps = []
     fractions = []
     for crop in range(prm.NGFBFC): # pylint: disable=no-member
-        fractions.append(read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac\\"))
-        grmppc_maps.append(read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc\\"))
+        fractions.append(read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac/"))
+        grmppc_maps.append(read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc/"))
 
     input_rasters = {'R':greg, 'suit':gsuit, 'A':garea, 'p_c':grmppc_maps, 'f':fractions,
                      'lct':glct}
 
     return input_rasters
 
-def read_nonraster_inputs(data_dir="data\\"):
+def read_nonraster_inputs(data_dir="data/"):
     """
     Reads IMAGE-LAND's non-raster inputs and returns them as a dictionary.
 
     Parameters
     ----------
-    data_dir : string, default = 'data\\'
+    data_dir : string, default = 'data/'
                relative path to the file
 
     Returns
