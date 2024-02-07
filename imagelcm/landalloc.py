@@ -865,26 +865,36 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     # get irrigation boolean raster
     ir_bool = lfr.to_numpy(ir_bool)
 
+    # determine cells to be altered by integration_allocation
+    cells_relevant = ntm.find_relevant_cells(np_rasters['is_cropland'])
+
     # call integration allocation on existing cropland. NB: irr yields are initial regional prod
     fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs_denan, yfs_denan, fracs_r2_denan,
                                                             np_rasters['R_flat'],
                                                             np_rasters['suit'], reg_demands,
-                                                            np_rasters['is_cropland'], shp,
-                                                            initial_reg_prod=ir_yields,
-                                                            expansion=False)
+                                                            cells_relevant,
+                                                            initial_reg_prod=ir_yields)
 
     # determine whether expansion is necessary
     demands_met = reg_prod_updated >= (reg_demands - prm.EPS)
     expand = np.count_nonzero(demands_met) < demands_met.size
 
     if expand:
+        # determine cells to be altered by integration_allocation
+        cells_relevant = ntm.find_relevant_cells(np_rasters['is_cropland'], expansion=True)
+
+        # call integration-allocation on non-cropland
         fracs_r3, reg_prod_updated = ntm.integration_allocation(sdpfs_denan, yfs_denan,
-                                                                fracs_r2_denan,
-                                                                np_rasters['R_flat'],
+                                                                fracs_r3, np_rasters['R_flat'],
                                                                 np_rasters['suit'], reg_demands,
-                                                                np_rasters['is_cropland'], shp,
-                                                                initial_reg_prod=reg_prod_updated,
-                                                                expansion=True)
+                                                                cells_relevant,
+                                                                initial_reg_prod=reg_prod_updated)
+
+    # reshape new crop fraction array
+    fracs_r3 = ntm.unflatten_rasters(fracs_r3, shp)
+
+    # saving new fracs
+    wt.write_np_raster(f"new_fraction_maps_{prm.N_REG}_{prm.NFC}_{shp}", fracs_r3)
 
     # re-NaN
     should_be_nan = np.isnan(np_rasters['suit'])

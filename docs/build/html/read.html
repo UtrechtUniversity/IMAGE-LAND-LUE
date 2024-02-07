@@ -55,6 +55,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#read.read_input_rasters"><code class="docutils literal notranslate"><span class="pre">read_input_rasters()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#read.read_nonraster_inputs"><code class="docutils literal notranslate"><span class="pre">read_nonraster_inputs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#read.read_raster"><code class="docutils literal notranslate"><span class="pre">read_raster()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read.read_raster_np"><code class="docutils literal notranslate"><span class="pre">read_raster_np()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="write.html">write module</a></li>
@@ -110,14 +111,11 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="read.read_input_rasters">
-<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_input_rasters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ir_rf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data\\'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_input_rasters" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_input_rasters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_input_rasters" title="Permalink to this definition"></a></dt>
 <dd><p>Reads IMAGE-LAND’s raster inputs and returns them as a dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ir_rf</strong> (<em>Bool</em><em>, </em><em>default=False</em>) – whether the LCM handles irrigated cropland</p></li>
-<li><p><strong>data_dir</strong> (<em>string</em><em>, </em><em>default = 'data'</em>) – relative path to the file</p></li>
-</ul>
+<dd class="field-odd"><p><strong>data_dir</strong> (<em>string</em><em>, </em><em>default = 'data/'</em>) – relative path to the file</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>input_rasters</strong> – dict containing the map of regions, suitability
@@ -133,14 +131,11 @@ fractions and the land-cover type raster</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="read.read_nonraster_inputs">
-<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_nonraster_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ir_rf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data\\'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_nonraster_inputs" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_nonraster_inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_nonraster_inputs" title="Permalink to this definition"></a></dt>
 <dd><p>Reads IMAGE-LAND’s non-raster inputs and returns them as a dictionary.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ir_rf</strong> (<em>Bool</em><em>, </em><em>default=False</em>) – whether the LCM handles irrigated cropland</p></li>
-<li><p><strong>data_dir</strong> (<em>string</em><em>, </em><em>default = 'data'</em>) – relative path to the file</p></li>
-</ul>
+<dd class="field-odd"><p><strong>data_dir</strong> (<em>string</em><em>, </em><em>default = 'data/'</em>) – relative path to the file</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>nonraster_inputs</strong> – dict containing a np array containing the
@@ -161,14 +156,39 @@ fodder crops for all regions and timesteps.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="read.read_raster">
-<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_raster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data\\'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_raster" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_raster</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_raster" title="Permalink to this definition"></a></dt>
 <dd><p>Reads rasters of specified resolution into LUE.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>res</strong> (<em>int</em><em> or </em><em>float</em>) – resolution of the raster to be read in</p></li>
 <li><p><strong>file_name</strong> (<em>str</em>) – name of the raster file, including the extension</p></li>
-<li><p><strong>data_dir</strong> (<em>str</em><em>, </em><em>default = 'data'</em>) – relative path to the file</p></li>
+<li><p><strong>data_dir</strong> (<em>str</em><em>, </em><em>default = 'data/'</em>) – relative path to the file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>raster</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>lue data object</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – if res is neither an int nor a float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="read.read_raster_np">
+<span class="sig-prename descclassname"><span class="pre">read.</span></span><span class="sig-name descname"><span class="pre">read_raster_np</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">res</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'data/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#read.read_raster_np" title="Permalink to this definition"></a></dt>
+<dd><p>Reads rasters of specified resolution into LUE VIA XARRAY AND NUMPY!</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>res</strong> (<em>int</em><em> or </em><em>float</em>) – resolution of the raster to be read in</p></li>
+<li><p><strong>file_name</strong> (<em>str</em>) – name of the raster file, including the extension</p></li>
+<li><p><strong>data_dir</strong> (<em>str</em><em>, </em><em>default = 'data/'</em>) – relative path to the file</p></li>
+<li><p><strong>target_dtype</strong> (<em>str</em><em>, </em><em>default = 'float'</em>) – desired datatype of the values in the returned raster</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
