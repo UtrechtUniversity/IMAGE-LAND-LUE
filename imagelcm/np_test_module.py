@@ -497,7 +497,7 @@ def adjust_demand_surpassers(cell_fracs, prod_reg, yield_facs_cell, demands_reg,
     return cell_fracs
 
 def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_flat, suit_map,
-                           reg_demands, cells_relevant, initial_reg_prod=None):
+                           reg_demands, cells_relevant, initial_reg_prod=None, ir_frac=None):
     """
     Allocates new land (or remaining cropland fracs) based on summed yield
 
@@ -533,6 +533,9 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                        production refers to irrigated crop yields if
                        expansion=False; crop yields from existing cropland
                        if expansion=True
+    ir_frac : np.ndarray, default = None
+              1D array containing the total fraction of each cell
+              allocated to irrigated crops, used to ensure normalisation
 
     RETURNS
     -------
@@ -547,6 +550,9 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
         reg_prod = np.zeros((prm.N_REG, prm.NGFC))
     else:
         reg_prod = initial_reg_prod.copy()
+
+    if ir_frac is None:
+        ir_frac = old_fracs_flat[0, :] * 0.0
 
     # indices, in order of declining suitability
     sorted_inds = find_sorted_indices(suit_map)
@@ -574,6 +580,9 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                 yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
                 reg_prod[reg-1, :] += yields[:, ind]
                 f_sum = old_fracs_flat[:, ind].sum()
+
+                # add irrigated fraction to the sum, to ensure normalisation
+                f_sum += ir_frac[ind]
 
                 # remaining regional demand for crop; 0 where demand met
                 dem_remain = reg_demands[reg-1, :] - reg_prod[reg-1, :]
@@ -618,6 +627,38 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     new_fracs_flat = old_fracs_flat + extra_fracs
 
     return new_fracs_flat, reg_prod
+
+def fill_grass(fracs, ir_frac):
+    """
+    Fill remainder of cells featuring irrigated crops with grass
+
+    PARAMETERS
+    ----------
+    fracs : np.ndarray
+            2D array containing the crop fractions for grass and rain-fed
+            food crops, with spatial coordinated reduced to one dimension
+    ir_frac : np.ndarray
+              1D array containing the total fraction of each cell
+              allocated to irrigated crops, used to ensure normalisation
+    
+    RETURNS
+    -------
+    fracs : np.ndarray
+            updated crop flattened crop fractions
+    """
+
+    # find the sum of all fractions in each cell
+    f_sum = np.sum(fracs, axis=0) + ir_frac
+
+    # identify cells with non-zero irrigated fractions where f_sum<1
+    to_be_filled = np.where(np.logical_and(ir_frac>0, f_sum<1.0))[0]
+
+    # compute and fill the remainder
+    grass_fracs = fracs[0, :]
+    grass_fracs[to_be_filled] += (1.0 - f_sum[to_be_filled])
+
+    return fracs
+
 
 def flatten_rasters(raster_like):
     """

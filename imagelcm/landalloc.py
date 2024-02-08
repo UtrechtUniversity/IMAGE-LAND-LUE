@@ -282,6 +282,38 @@ def get_irrigated_boolean(input_rasters):
 
     return has_irrigated
 
+def compute_ir_frac(input_rasters):
+    """
+    Computes total fraction allocated to irrigated crops in each cell
+    
+    Parameters
+    ----------
+    input_rasters : dict
+                    dict containing the same items as that returned by
+                    read.read_input_rasters.
+
+    Returns
+    -------
+    ir_frac : lue PartitionedArray<float32>
+              raster containing total irrigated crop fractions
+
+    See Also
+    --------
+    get_irrigated_boolean
+    read.read_input_rasters
+    """
+
+    # separate out irrigated fractions
+    ir_fractions = input_rasters['f'][prm.NGFBC:]
+    n_crops = prm.NGFBFC - prm.NGFBC
+
+    # sum
+    ir_frac = ir_fractions[0]
+    for crop in range(1, n_crops):
+        ir_frac += ir_fractions[crop]
+
+    return ir_frac
+
 def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
     """
     Takes in tabular datasets (eg. management facs) and puts them on maps
@@ -370,7 +402,8 @@ def reallocate_cropland_initial(input_rasters, mapped_data):
     Returns
     -------
     new_fractions : list of lue data objects
-                    list containing rasters for each new crop fraction
+                    list containing rasters for each new crop fraction.
+                    NB: only for grass and rain-fed fod crops
     """
 
     # relabel relevant input variables
@@ -559,7 +592,7 @@ def prepare_for_np(to_be_converted):
     converted['dem_rats_flat'] = raster_s_to_np(to_be_converted['dem_rats'].values(), is_list=True,
                                                      flatten=True)
 
-    UNIQUE = np.unique(converted['dem_rats_flat'])
+    # UNIQUE = np.unique(converted['dem_rats_flat'])
 
     # sm_np = lfr.to_numpy(suitmap) # don't flatten suitmap yet
     converted['suit'] = raster_s_to_np(to_be_converted['suit'])
@@ -577,6 +610,8 @@ def prepare_for_np(to_be_converted):
 
     converted['is_cropland'] = raster_s_to_np(to_be_converted['is_cropland'])
     converted['is_cropland_flat'] = raster_s_to_np(to_be_converted['is_cropland'], flatten=True)
+
+    converted['IR_frac'] = raster_s_to_np(to_be_converted['IR_frac'], flatten=True)
 
     world_shape = converted['suit'].shape
 
@@ -757,7 +792,7 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
     return ir_yields
 
 def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yields=None,
-                             ir_bool=None):
+                             ir_bool=None, ir_frac=None):
     """
     Runs the relevant functions to re-allocate all cropland once
 
@@ -769,6 +804,8 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     non_raster_inputs : dict
                        dict containing the same items as that returned by
                        setup.
+    timestep : int
+               current model timestep
     ir_yields : np.ndarray
                 array of shape (N_REG, NFGC) containing the regional crop
                 yields of all irrigated crops
@@ -798,12 +835,14 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     # initial reallocation of existing cropland
     fracs_r1 = reallocate_cropland_initial(input_rasters, mapped_data)
 
+    # combine reallocated fracs with biofuel and irrigated crop fractions (python list joining)
+    all_fracs_r1 = fracs_r1 + input_rasters['f'][prm.NGFC:]
+
     # compute potential yields
     pot_yields = compute_potential_yield(fracs_r1, input_rasters, mapped_data, nonraster_inputs)
 
     # (start LUE) computing (of) yield and sdp factors
-    yield_facs, sdp_facs = compute_additional_rasters(input_rasters, mapped_data,
-                                                                nonraster_inputs)
+    yield_facs, sdp_facs = compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs)
 
     # save first-stage crop reallocation, potential yield and is_cropland tiffs
     if prm.CHECK_IO:
@@ -814,10 +853,10 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
         wt.write_raster(input_rasters['is_cropland'], 'is_cropland')
 
     # define dictionary of rasters to be converted to np.ndarray format
-    rasters_for_numpy = {'fracs':fracs_r1, 'pot_yields':pot_yields,
+    rasters_for_numpy = {'fracs':all_fracs_r1, 'pot_yields':pot_yields,
                          'dem_rats':mapped_data['demand_ratios'], 'R':input_rasters['R'],
                          'suit':input_rasters['suit'], 'yf':yield_facs, 'sdpf':sdp_facs,
-                         'is_cropland':input_rasters['is_cropland']}
+                         'is_cropland':input_rasters['is_cropland'], 'IR_frac':ir_frac}
 
     shp, np_rasters = prepare_for_np(rasters_for_numpy)
 
@@ -825,7 +864,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
 
     ############################## NUMPY SECTION ####################################
     # de-NaN
-    np_rasters['yields_flat']
+    np_rasters['yields_flat'][np.isnan(np_rasters['yields_flat'])] = 0.0
     print(np_rasters['yields_flat'].dtype)
     integrands = ntm.denan_integration_input(np_rasters['yields_flat'])
 
@@ -844,7 +883,8 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
         np.save('outputs/regional_prods_R1', regional_prod)
 
     # get rid of fractions where demand has already been met
-    fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'], dems_met, np_rasters['R_flat'])
+    fracs_r2 = ntm.rework_reallocation(np_rasters['fracs_3D'][:prm.NGFC, :, :], dems_met,
+                                       np_rasters['R_flat'])
 
     # flatten inputs for integration-allocation
     fracs_r2_flat = ntm.flatten_rasters(fracs_r2)
@@ -873,7 +913,11 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
                                                             np_rasters['R_flat'],
                                                             np_rasters['suit'], reg_demands,
                                                             cells_relevant,
-                                                            initial_reg_prod=ir_yields)
+                                                            initial_reg_prod=ir_yields,
+                                                            ir_frac=np_rasters['IR_frac'])
+
+    # fill remainder of cells with irrigated crops with grass
+    fracs_r3 = ntm.fill_grass(fracs_r3, np_rasters['IR_frac'])
 
     # determine whether expansion is necessary
     demands_met = reg_prod_updated >= (reg_demands - prm.EPS)
@@ -892,6 +936,9 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
 
     # reshape new crop fraction array
     fracs_r3 = ntm.unflatten_rasters(fracs_r3, shp)
+
+    # concatenate new fractions array with irrigated fractions
+    fracs_r3 = np.concatenate((fracs_r3, np_rasters['fracs_3D'][prm.NGFBC:, :, :]), axis=0)
 
     # saving new fracs
     wt.write_np_raster(f"new_fraction_maps_{prm.N_REG}_{prm.NFC}_{shp}", fracs_r3)
@@ -951,6 +998,7 @@ def main():
     # compute crop yields from irrigated land
     ir_yields = compute_irrigated_yield(input_rasters, nonraster_inputs)
     ir_bool = get_irrigated_boolean(input_rasters)
+    ir_frac = compute_ir_frac(input_rasters)
 
     # define timestep
     timestep = 1
@@ -965,7 +1013,8 @@ def main():
 
     # allocate single timestep
     new_rasters, reg_prod = allocate_single_timestep(input_rasters, nonraster_inputs, timestep,
-                                                     ir_yields=ir_yields, ir_bool=ir_bool)
+                                                     ir_yields=ir_yields, ir_bool=ir_bool,
+                                                     ir_frac=ir_frac)
 
     # compute crop areas
     crop_areas =  compute_crop_areas(new_rasters['fracs'], input_rasters['A'], input_rasters['R'])
