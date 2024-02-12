@@ -6,7 +6,7 @@ Defines key model parameters.
 STANDALONE = True
 
 # epsilon
-EPS = 1e-5
+EPS = 1e-6
 
 # map shape
 SHP = (2160, 4320)

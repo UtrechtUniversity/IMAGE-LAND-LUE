@@ -11,6 +11,7 @@ import parameters as prm
 import read as rd
 import write as wt
 import np_test_module as ntm
+import analysis as ans
 
 def setup():
     """
@@ -345,43 +346,6 @@ def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
 
     return mapped_data
 
-def compute_largest_fraction(fracs, is_cropland, save=False, timestep=0):
-    """
-    Finds the largest crop fraction and the crop it belongs to
-
-    Parameters
-    ----------
-    fracs : list of LUE data objects
-            list of arrays containing the crop fractions for all cells
-    save : bool, default = False
-           if true, save outputs in netcdf format
-
-    Returns
-    -------
-    ma_frac : LUE data object
-              2D array containing the largest crop fraction, for all cells
-    ma_crop : LUE data object
-              2D array containing the most allocated crop, for all cells
-    """
-
-    f_len = len(fracs)
-
-    # set initial values to 1st crop('s fractions)
-    ma_frac = lfr.where(is_cropland, 0., -1.)
-    ma_crop = lfr.where(is_cropland, 0, -1)
-
-    # update by iterating through all crops
-    for crop in range(0, min(prm.NGFC, f_len)):
-        current_crop_bigger = (fracs[crop] > ma_frac) & is_cropland
-        ma_frac = lfr.where(current_crop_bigger, fracs[crop], ma_frac)
-        ma_crop = lfr.where(current_crop_bigger, crop, ma_crop)
-
-    if save:
-        wt.write_raster(ma_frac, f'mafrac_{timestep}')
-        wt.write_raster(ma_crop, f'mac{timestep}')
-
-    return ma_frac, ma_crop
-
 def reallocate_cropland_initial(input_rasters, mapped_data):
     """
     Executes the first step of reallocating existing cropland.
@@ -692,50 +656,6 @@ def update_lcts(fracs, glct):
 
     return is_cropland, new_glct
 
-def compute_crop_areas(fracs, garea, regions):
-    """
-    Computes the total area allocated to cropland and each crop
-    
-    PARAMETERS
-    ----------
-    fracs : list
-            list of lue PartitionedArrays containing the most recent crop
-            fractions
-    garea : lue PartitionedArray<>
-            array showing the amount of area in each grid cell
-    regions : lue PartitionedArray<>
-              array containing the region to which each grid cell belongs
-    
-    RETURNS
-    -------
-    crop_areas : np.ndarray
-                 2-dimensional array containing the area of land allocated
-                 to each crop (and agriculture in total) in each region
-                 and globally
-    """
-
-    regional_areas = [lfr.zonal_sum(frac*garea, regions) for frac in fracs]
-
-    crop_areas = np.zeros((prm.N_REG+1, prm.NGFBFC+1))
-    for ind, reg_ar in enumerate(regional_areas):
-        # isolate crop_areas for each region
-        u, indices = np.unique(lfr.to_numpy(reg_ar), return_index=True)
-        corresponding_regions = lfr.to_numpy(regions).flatten()[indices]
-
-        # make sure that regions 0 and 27 are removed
-        where_valid_regions = np.logical_and(corresponding_regions>0,
-                                             corresponding_regions<=prm.N_REG)
-        u = u[where_valid_regions]
-        corresponding_regions = corresponding_regions[where_valid_regions]
-
-        crop_areas[corresponding_regions-1, ind+1] = u
-
-    # include regional/agricultural totals
-    crop_areas[-1, :-1] = np.sum(crop_areas[:, :-1], axis=0)
-    crop_areas[-1, -1] = crop_areas[-1, :-1].sum()
-
-    return crop_areas
-
 def compute_irrigated_yield(input_rasters, nonraster_inputs):
     """
     Computes total yield of irrigated cropland for each crop and region
@@ -917,7 +837,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
                                                             ir_frac=np_rasters['IR_frac'])
 
     # fill remainder of cells with irrigated crops with grass
-    fracs_r3 = ntm.fill_grass(fracs_r3, np_rasters['IR_frac'])
+    # fracs_r3 = ntm.fill_grass(fracs_r3, np_rasters['IR_frac'])
 
     # determine whether expansion is necessary
     demands_met = reg_prod_updated >= (reg_demands - prm.EPS)
@@ -957,7 +877,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     is_cropland, new_glct = update_lcts(new_fracs, input_rasters['lct'])
 
     # save current mac, mafrac
-    compute_largest_fraction(new_fracs, is_cropland, save=True, timestep=timestep)
+    ans.compute_largest_fraction(new_fracs, is_cropland, save=True, timestep=timestep)
 
     # return as dictionary
     new_rasters = {'fracs':new_fracs, 'lct':new_glct}
@@ -993,7 +913,7 @@ def main():
         wt.write_raster(input_rasters['R'], 'regions_map')
 
     # save initial mac, mafrac
-    compute_largest_fraction(input_rasters['f'], input_rasters['is_cropland'], save=True)
+    ans.compute_largest_fraction(input_rasters['f'], input_rasters['is_cropland'], save=True)
 
     # compute crop yields from irrigated land
     ir_yields = compute_irrigated_yield(input_rasters, nonraster_inputs)
@@ -1017,7 +937,8 @@ def main():
                                                      ir_frac=ir_frac)
 
     # compute crop areas
-    crop_areas =  compute_crop_areas(new_rasters['fracs'], input_rasters['A'], input_rasters['R'])
+    crop_areas =  ans.compute_crop_areas(new_rasters['fracs'], input_rasters['A'],
+                                         input_rasters['R'])
 
     # for raster in new_rasters['fracs']:
     #     lfr.wait(raster)

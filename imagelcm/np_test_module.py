@@ -467,7 +467,8 @@ def adjust_demand_surpassers(cell_fracs, prod_reg, yield_facs_cell, demands_reg,
     """
 
     # find initial rdm for current region
-    rdm_reg = prod_reg >= demands_reg
+    # rdm_reg = prod_reg >= demands_reg
+    rdm_reg = (demands_reg - prod_reg) < prm.EPS
 
     # set overproduced crop fractions to 0
     cdm = np.where(rdm_reg)[0]
@@ -483,7 +484,8 @@ def adjust_demand_surpassers(cell_fracs, prod_reg, yield_facs_cell, demands_reg,
                         + cell_fracs[ind_1:] * yield_facs_cell[ind_1:])
 
     # store temporary regional demand met boolean array for current region and c_dm
-    rdm_temp = reg_prod_temp >= demands_reg[ind_1:]
+    # rdm_temp = reg_prod_temp >= demands_reg[ind_1:]
+    rdm_temp = (demands_reg[ind_1:] - reg_prod_temp) < prm.EPS
     c_dm = np.where(np.logical_and(rdm_temp, cell_fracs[ind_1:]>0))[0] + ind_1
 
     # correct fractions which have just made regional production exceed demand
@@ -559,7 +561,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     print(f'# NaNs in sorted_indices: {np.count_nonzero(np.isnan(sorted_inds))}')
 
     # compute demands met boolean (one value for each region, for each crop)
-    rdm = reg_prod >= reg_demands
+    rdm = (reg_demands - reg_prod) < prm.EPS
 
     # loop through cells, from high suitability to low-
     extra_fracs = np.zeros_like(old_fracs_flat).astype(np.float32)
@@ -570,57 +572,60 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
         if reg!=np.nan:
             reg = int(reg)
             if 0<reg<=prm.N_REG and cells_relevant[ind]:
-                # make sure demand not surpassed in current cell by old_fracs_flat
-                old_fracs_flat[:, ind] = adjust_demand_surpassers(old_fracs_flat[:, ind],
-                                                                  reg_prod[reg-1, :],
-                                                                  yield_facs_flat[:, ind],
-                                                                  reg_demands[reg-1, :])
+                # if demand not yet met in region
+                if rdm[reg-1, :].size!=np.where(rdm[reg-1, :])[0].size:
+                    # make sure demand not surpassed in current cell by old_fracs_flat
+                    old_fracs_flat[:, ind] = adjust_demand_surpassers(old_fracs_flat[:, ind],
+                                                                    reg_prod[reg-1, :],
+                                                                    yield_facs_flat[:, ind],
+                                                                    reg_demands[reg-1, :])
 
-                # compute potential yield, regional prod boolean array and sum of fractions
-                yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
-                reg_prod[reg-1, :] += yields[:, ind]
-                f_sum = old_fracs_flat[:, ind].sum()
+                    # compute potential yield, regional prod boolean array and sum of fractions
+                    yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
+                    reg_prod[reg-1, :] += yields[:, ind]
+                    f_sum = old_fracs_flat[:, ind].sum()
 
-                # add irrigated fraction to the sum, to ensure normalisation
-                f_sum += ir_frac[ind]
+                    # add irrigated fraction to the sum, to ensure normalisation
+                    f_sum += ir_frac[ind]
 
-                # remaining regional demand for crop; 0 where demand met
-                dem_remain = reg_demands[reg-1, :] - reg_prod[reg-1, :]
-                dem_remain[np.where(rdm[reg-1, :])[0]] = 0.0
+                    # remaining regional demand for crop; 0 where demand met
+                    dem_remain = reg_demands[reg-1, :] - reg_prod[reg-1, :]
+                    dem_remain[np.where(rdm[reg-1, :])[0]] = 0.0
 
-                # compute 'sdempr'
-                sdp = (dem_remain * sdp_facs_flat[:, ind]).sum()
+                    # compute 'sdempr'
+                    sdp = (dem_remain * sdp_facs_flat[:, ind]).sum()
 
-                # allocate (rest of) new crop fractions (NOT GRASS!!!)
-                if sdp>prm.EPS:
-                    extra_fracs[1:, ind] = ((1-f_sum) * sdp_facs_flat[1:, ind] / sdp
-                                            * dem_remain[1:])
+                    # allocate (rest of) new crop fractions (NOT GRASS!!!)
+                    if sdp>prm.EPS:
+                        extra_fracs[1:, ind] = ((1-f_sum) * sdp_facs_flat[1:, ind] / sdp
+                                                * dem_remain[1:])
 
-                # de-NaN extra_fracs
-                extra_fracs[np.isnan(extra_fracs[:, ind]), ind] = 0.0
+                    # de-NaN extra_fracs
+                    extra_fracs[np.isnan(extra_fracs[:, ind]), ind] = 0.0
 
-                # make sure demand not surpassed in current cellby extra_fracs
-                extra_fracs[:, ind] = adjust_demand_surpassers(extra_fracs[:, ind],
-                                                               reg_prod[reg-1, :],
-                                                               yield_facs_flat[:, ind],
-                                                               reg_demands[reg-1, :],
-                                                               incl_grass=False)
+                    # make sure demand not surpassed in current cellby extra_fracs
+                    extra_fracs[:, ind] = adjust_demand_surpassers(extra_fracs[:, ind],
+                                                                reg_prod[reg-1, :],
+                                                                yield_facs_flat[:, ind],
+                                                                reg_demands[reg-1, :],
+                                                                incl_grass=False)
 
-                # if there is remaining space in the cell, fill the remainder with grass
-                diff = (1-f_sum) - extra_fracs[:, ind].sum()
-                if diff>prm.EPS:
-                    extra_fracs[0, ind] = diff
+                    # if there is remaining space in the cell, fill the remainder with grass
+                    diff = (1-f_sum) - extra_fracs[:, ind].sum()
+                    if diff>prm.EPS:
+                        extra_fracs[0, ind] = diff
 
-                # compute and take into account extra fracs' contribution to production
-                extra_yields = extra_fracs[:, ind] * yield_facs_flat[:, ind]
-                yields[:, ind] += extra_yields
-                reg_prod[reg-1, :] += extra_yields
+                    # compute and take into account extra fracs' contribution to production
+                    extra_yields = extra_fracs[:, ind] * yield_facs_flat[:, ind]
+                    yields[:, ind] += extra_yields
+                    reg_prod[reg-1, :] += extra_yields
 
-                # recalculate demands met boolean
-                rdm = reg_prod >= reg_demands
+                    # recalculate demands met boolean
+                    # rdm = reg_prod >= reg_demands
+                    rdm = (reg_demands - reg_prod) < prm.EPS
 
         # break if demand met for all crops
-        if len(rdm.flatten())==len(np.where(rdm.flatten())[0]):
+        if rdm.size==np.where(rdm)[0].size:
             break
 
     print(f'unique extra fracs: {np.unique(extra_fracs)}')

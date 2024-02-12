@@ -21,12 +21,17 @@ grass_dem = np.load('data/grass_crop_demands.npy')
 food_prod = np.swapaxes(reg_prod[:, 1:], 0, 1)
 food_dem_1 = food_dem[1, :, :]
 
+grass_prod = reg_prod[:, 0]
+grass_mismatch = grass_dem[1, 2, :] - grass_prod
+
 ####### quick demand met test ########
 # print(food_prod)
-print(food_dem_1)
+# print(food_dem_1)
 mismatch = food_dem[1, :, :] - food_prod
-mismatch[np.abs(mismatch)<prm.EPS] = 0.0
+# mismatch[np.abs(mismatch)<prm.EPS] = 0.0
 print(mismatch)
+
+# print(grass_mismatch)
 ######################################
 
 time = np.arange(131)
