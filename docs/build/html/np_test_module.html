@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Documentation Style" href="md_files/Documentation%20Style.html" />
+    <link rel="next" title="analysis module" href="analysis.html" />
     <link rel="prev" title="write module" href="write.html" /> 
 </head>
 
@@ -55,6 +55,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.adjust_demand_surpassers"><code class="docutils literal notranslate"><span class="pre">adjust_demand_surpassers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.compute_largest_fraction_np"><code class="docutils literal notranslate"><span class="pre">compute_largest_fraction_np()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.denan_integration_input"><code class="docutils literal notranslate"><span class="pre">denan_integration_input()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#np_test_module.fill_grass"><code class="docutils literal notranslate"><span class="pre">fill_grass()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.find_relevant_cells"><code class="docutils literal notranslate"><span class="pre">find_relevant_cells()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.find_sorted_indices"><code class="docutils literal notranslate"><span class="pre">find_sorted_indices()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.flatten_rasters"><code class="docutils literal notranslate"><span class="pre">flatten_rasters()</span></code></a></li>
@@ -69,6 +70,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#np_test_module.write_regs"><code class="docutils literal notranslate"><span class="pre">write_regs()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">analysis module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="md_files/Documentation%20Style.html">Documentation Style</a></li>
@@ -171,6 +173,28 @@ in the region to which the cell belongs</p></li>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>new_array</strong> – array of same dimensions as array</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="np_test_module.fill_grass">
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">fill_grass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_frac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.fill_grass" title="Permalink to this definition"></a></dt>
+<dd><p>Fill remainder of cells featuring irrigated crops with grass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fracs</strong> (<em>np.ndarray</em>) – 2D array containing the crop fractions for grass and rain-fed
+food crops, with spatial coordinated reduced to one dimension</p></li>
+<li><p><strong>ir_frac</strong> (<em>np.ndarray</em>) – 1D array containing the total fraction of each cell
+allocated to irrigated crops, used to ensure normalisation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fracs</strong> – updated crop flattened crop fractions</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -299,7 +323,7 @@ the production of each crop by each region</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="np_test_module.integration_allocation">
-<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sdp_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yield_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_fracs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suit_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_demands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells_relevant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_reg_prod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">np_test_module.</span></span><span class="sig-name descname"><span class="pre">integration_allocation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sdp_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yield_facs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">old_fracs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regs_flat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suit_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reg_demands</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells_relevant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_reg_prod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#np_test_module.integration_allocation" title="Permalink to this definition"></a></dt>
 <dd><p>Allocates new land (or remaining cropland fracs) based on summed yield</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -326,6 +350,8 @@ accounted for by region and crop. Unchangeable crop
 production refers to irrigated crop yields if
 expansion=False; crop yields from existing cropland
 if expansion=True</p></li>
+<li><p><strong>ir_frac</strong> (<em>np.ndarray</em><em>, </em><em>default = None</em>) – 1D array containing the total fraction of each cell
+allocated to irrigated crops, used to ensure normalisation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -475,7 +501,7 @@ flattened_raster_like</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="write.html" class="btn btn-neutral float-left" title="write module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="md_files/Documentation%20Style.html" class="btn btn-neutral float-right" title="Documentation Style" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="analysis.html" class="btn btn-neutral float-right" title="analysis module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

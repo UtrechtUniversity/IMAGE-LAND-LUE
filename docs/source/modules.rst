@@ -10,3 +10,4 @@ ImageLCM
    read
    write
    np_test_module
+   analysis

@@ -51,13 +51,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.allocate_single_timestep"><code class="docutils literal notranslate"><span class="pre">allocate_single_timestep()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.back_to_lue"><code class="docutils literal notranslate"><span class="pre">back_to_lue()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_additional_rasters"><code class="docutils literal notranslate"><span class="pre">compute_additional_rasters()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_crop_areas"><code class="docutils literal notranslate"><span class="pre">compute_crop_areas()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_ir_frac"><code class="docutils literal notranslate"><span class="pre">compute_ir_frac()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_irrigated_yield"><code class="docutils literal notranslate"><span class="pre">compute_irrigated_yield()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_largest_fraction"><code class="docutils literal notranslate"><span class="pre">compute_largest_fraction()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.compute_potential_yield"><code class="docutils literal notranslate"><span class="pre">compute_potential_yield()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.get_irrigated_boolean"><code class="docutils literal notranslate"><span class="pre">get_irrigated_boolean()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.isolate_cropland"><code class="docutils literal notranslate"><span class="pre">isolate_cropland()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.map_tabulated_data"><code class="docutils literal notranslate"><span class="pre">map_tabulated_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#landalloc.perform_allocation_loop"><code class="docutils literal notranslate"><span class="pre">perform_allocation_loop()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.prepare_for_np"><code class="docutils literal notranslate"><span class="pre">prepare_for_np()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.raster_s_to_np"><code class="docutils literal notranslate"><span class="pre">raster_s_to_np()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#landalloc.reallocate_cropland_initial"><code class="docutils literal notranslate"><span class="pre">reallocate_cropland_initial()</span></code></a></li>
@@ -73,6 +73,7 @@
 <li class="toctree-l2"><a class="reference internal" href="read.html">read module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="write.html">write module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html">np_test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">analysis module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="md_files/Documentation%20Style.html">Documentation Style</a></li>
@@ -108,8 +109,8 @@
 <p>Calls the functions in read.py and allocates land.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="landalloc.allocate_single_timestep">
-<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">allocate_single_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_yields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.allocate_single_timestep" title="Permalink to this definition"></a></dt>
-<dd><p>Runs the relevant functions to re-allocate all cropland once</p>
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">allocate_single_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_yields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.allocate_single_timestep" title="Permalink to this definition"></a></dt>
+<dd><p>Runs the relevant functions to re-allocate all land for one timestep</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -117,6 +118,7 @@
 read_input_rasters</p></li>
 <li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
 setup.</p></li>
+<li><p><strong>timestep</strong> (<em>int</em>) – current model timestep</p></li>
 <li><p><strong>ir_yields</strong> (<em>np.ndarray</em>) – array of shape (N_REG, NFGC) containing the regional crop
 yields of all irrigated crops</p></li>
 </ul>
@@ -177,27 +179,25 @@ be summed to compute the quantity known as sdempr.
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="landalloc.compute_crop_areas">
-<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">compute_crop_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">garea</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regions</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.compute_crop_areas" title="Permalink to this definition"></a></dt>
-<dd><p>Computes the total area allocated to cropland and each crop</p>
+<dt class="sig sig-object py" id="landalloc.compute_ir_frac">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">compute_ir_frac</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.compute_ir_frac" title="Permalink to this definition"></a></dt>
+<dd><p>Computes total fraction allocated to irrigated crops in each cell</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fracs</strong> (<em>list</em>) – list of lue PartitionedArrays containing the most recent crop
-fractions</p></li>
-<li><p><strong>garea</strong> (<em>lue PartitionedArray&lt;&gt;</em>) – array showing the amount of area in each grid cell</p></li>
-<li><p><strong>regions</strong> (<em>lue PartitionedArray&lt;&gt;</em>) – array containing the region to which each grid cell belongs</p></li>
-</ul>
+<dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+read.read_input_rasters.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>crop_areas</strong> – 2-dimensional array containing the area of land allocated
-to each crop (and agriculture in total) in each region
-and globally</p>
+<dd class="field-even"><p><strong>ir_frac</strong> – raster containing total irrigated crop fractions</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>np.ndarray</p>
+<dd class="field-odd"><p>lue PartitionedArray&lt;float32&gt;</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.get_irrigated_boolean" title="landalloc.get_irrigated_boolean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_irrigated_boolean</span></code></a>, <a class="reference internal" href="read.html#read.read_input_rasters" title="read.read_input_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read.read_input_rasters</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -219,27 +219,6 @@ yields for all irrigated crops in all regions, in [kT]</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="landalloc.compute_largest_fraction">
-<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">compute_largest_fraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_cropland</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.compute_largest_fraction" title="Permalink to this definition"></a></dt>
-<dd><p>Finds the largest crop fraction and the crop it belongs to</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>fracs</strong> (<em>list</em><em> of </em><em>LUE data objects</em>) – list of arrays containing the crop fractions for all cells</p></li>
-<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>default = False</em>) – if true, save outputs in netcdf format</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><strong>ma_frac</strong> (<em>LUE data object</em>) – 2D array containing the largest crop fraction, for all cells</p></li>
-<li><p><strong>ma_crop</strong> (<em>LUE data object</em>) – 2D array containing the most allocated crop, for all cells</p></li>
-</ul>
-</p>
 </dd>
 </dl>
 </dd></dl>
@@ -305,6 +284,30 @@ fractions</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="landalloc.perform_allocation_loop">
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">perform_allocation_loop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_step</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">invl</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.perform_allocation_loop" title="Permalink to this definition"></a></dt>
+<dd><p>(Re)allocates land for number of timesteps n_step at an interval invl</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+read_input_rasters</p></li>
+<li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+<li><p><strong>ir_info</strong> (<em>dict</em>) – dictionary containing the irrigated crop yields, the areas
+in which there is irrigated cropland and the irrigated crop
+fractions (isolated from the rain-fed crop fractions)</p></li>
+<li><p><strong>n_step</strong> (<em>int</em>) – the number of timesteps over which the allocation should be
+performed</p></li>
+<li><p><strong>invl</strong> (<em>int</em><em>, </em><em>default = 1</em>) – the desired interval between each timestep [years]. For
+example, n_step=3 and invl=5 will lead to the model being run
+over years 5, 10 and 15.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="landalloc.prepare_for_np">
 <span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">prepare_for_np</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">to_be_converted</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.prepare_for_np" title="Permalink to this definition"></a></dt>
 <dd><p>Converts rasters to np format</p>
@@ -366,7 +369,8 @@ setup.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>new_fractions</strong> – list containing rasters for each new crop fraction</p>
+<dd class="field-even"><p><strong>new_fractions</strong> – list containing rasters for each new crop fraction.
+NB: only for grass and rain-fed fod crops</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list of lue data objects</p>

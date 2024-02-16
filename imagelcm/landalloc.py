@@ -346,7 +346,7 @@ def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
 
     return mapped_data
 
-def reallocate_cropland_initial(input_rasters, mapped_data):
+def reallocate_cropland_initial(input_rasters, mapped_data, ir_frac):
     """
     Executes the first step of reallocating existing cropland.
 
@@ -358,10 +358,10 @@ def reallocate_cropland_initial(input_rasters, mapped_data):
                     demand increase rasters output by return_demand_ratios
                     and the existing cropland rasters output by
                     isolate_cropland.
-    non_raster_inputs : dict
-                       dict containing the same items as that returned by
-                       setup.
     mapped_data : dict
+    ir_frac : lfr.PartitionedArray<float32>
+              raster-like array containing the total fraction of each cell
+              allocated to irrigated crops, used to ensure normalisation
     
     Returns
     -------
@@ -395,26 +395,33 @@ def reallocate_cropland_initial(input_rasters, mapped_data):
         else:
             fraction_sum += new_fraction
 
+    # add sum of irrigated fractions to fraction_sum
+    fraction_sum += ir_frac
+    unique_fsum = np.unique(lfr.to_numpy(fraction_sum))
+    print(f'max frac after initial allocation: {unique_fsum}')
+
     # ensure the sum of no cell fraction exceeds 1
     broken_normalisation_bool = fraction_sum > 1
 
+    # if prm.CHECK_IO:
     wt.write_raster(broken_normalisation_bool, 'R1_normalisation_broken')
 
     # find crop with largest fraction for each cell
-    _, ma_crop = compute_largest_fraction(new_fractions, input_rasters['is_cropland'])
-
-    # # determine whether normalisation has been broken anywhere - only do the next bit if so
-    # norm_broken_anywhere = lfr.global_sum(lfr.where(broken_normalisation_bool, 1, 0)) > 0
-    # if norm_broken_anywhere:
-    # Would have to stop lue operations for above lines to work.
+    _, ma_crop = ans.compute_largest_fraction(new_fractions, input_rasters['is_cropland'])
 
     # remove excess fraction from largest cell fraction; set fraction_sum to 1 in those cells
-    for crop in range(1, prm.NFC):
+    for crop in range(0, prm.NFC):
         # cells in which fraction_sum>1 and 'crop' is the crop with the largest fraction
         to_be_changed = broken_normalisation_bool & (ma_crop == crop)
-        new_fractions[crop] = lfr.where(to_be_changed, new_fractions[crop]-fraction_sum+1,
+        new_fractions[crop] = lfr.where(to_be_changed, new_fractions[crop]-(fraction_sum-1),
                                         new_fractions[crop])
         fraction_sum = lfr.where(to_be_changed, 1.0, fraction_sum)
+
+        unique_fractions = np.unique(lfr.to_numpy(new_fractions[crop]))
+        print(f'unique corrected fractions after initial realloc: {unique_fractions}')
+
+    unique_fsum = np.unique(lfr.to_numpy(fraction_sum))
+    print(f'max frac after normalisation correction: {unique_fsum}')
 
     # rest of the cells are allocated to grass
     new_fractions.insert(0, 1-fraction_sum)
@@ -711,10 +718,9 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
 
     return ir_yields
 
-def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yields=None,
-                             ir_bool=None, ir_frac=None):
+def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_info=None):
     """
-    Runs the relevant functions to re-allocate all cropland once
+    Runs the relevant functions to re-allocate all land for one timestep
 
     PARAMETERS
     ----------
@@ -726,9 +732,10 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
                        setup.
     timestep : int
                current model timestep
-    ir_yields : np.ndarray
-                array of shape (N_REG, NFGC) containing the regional crop
-                yields of all irrigated crops
+    ir_info : dict, default = None
+              dictionary containing the irrigated crop yields, the areas
+              in which there is irrigated cropland and the irrigated crop
+              fractions (isolated from the rain-fed crop fractions)
 
     RETURNS
     -------
@@ -736,6 +743,10 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     reg_prod_updated : np.ndarray
                        crop production per region
     """
+    # unpack ir_info
+    ir_yields = ir_info['ir_yields']
+    ir_bool = ir_info['ir_bool']
+    ir_frac = ir_info['ir_frac']
 
     # map management facs, grazing intensity, demand ratios
     mapped_data = map_tabulated_data(input_rasters, nonraster_inputs, timestep)
@@ -753,7 +764,7 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
                         wt.write_raster(raster, f'{key}_{ind}')
 
     # initial reallocation of existing cropland
-    fracs_r1 = reallocate_cropland_initial(input_rasters, mapped_data)
+    fracs_r1 = reallocate_cropland_initial(input_rasters, mapped_data, ir_frac)
 
     # combine reallocated fracs with biofuel and irrigated crop fractions (python list joining)
     all_fracs_r1 = fracs_r1 + input_rasters['f'][prm.NGFC:]
@@ -858,10 +869,10 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     fracs_r3 = ntm.unflatten_rasters(fracs_r3, shp)
 
     # concatenate new fractions array with irrigated fractions
-    fracs_r3 = np.concatenate((fracs_r3, np_rasters['fracs_3D'][prm.NGFBC:, :, :]), axis=0)
+    fracs_r3 = np.concatenate((fracs_r3, np_rasters['fracs_3D'][prm.NGFC:, :, :]), axis=0)
 
     # saving new fracs
-    wt.write_np_raster(f"new_fraction_maps_{prm.N_REG}_{prm.NFC}_{shp}", fracs_r3)
+    wt.write_np_raster(f"frac_rasters/new_fraction_{shp}_t{timestep}", fracs_r3)
 
     # re-NaN
     should_be_nan = np.isnan(np_rasters['suit'])
@@ -883,6 +894,65 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_yield
     new_rasters = {'fracs':new_fracs, 'lct':new_glct}
 
     return new_rasters, reg_prod_updated
+
+def perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, n_step, invl=1):
+    """
+    (Re)allocates land for number of timesteps n_step at an interval invl
+
+    PARAMETERS
+    ----------
+    input_rasters : dict
+                    dict containing the same items as that returned by
+                    read_input_rasters
+    non_raster_inputs : dict
+                       dict containing the same items as that returned by
+                       setup
+    ir_info : dict
+              dictionary containing the irrigated crop yields, the areas
+              in which there is irrigated cropland and the irrigated crop
+              fractions (isolated from the rain-fed crop fractions)
+    n_step : int
+             the number of timesteps over which the allocation should be
+             performed
+    invl : int, default = 1
+           the desired interval between each timestep [years]. For
+           example, n_step=3 and invl=5 will lead to the model being run
+           over years 5, 10 and 15.
+    """
+    # unpack irrigation info
+    ir_yields = ir_info['ir_yields']
+    ir_bool = ir_info['ir_bool']
+    ir_frac = ir_info['ir_frac']
+
+    # compute and save initial crop areas
+    crop_areas =  ans.compute_crop_areas(input_rasters['f'], input_rasters['A'],
+                                    input_rasters['R'])
+    np.save('outputs/crop_areas_0', crop_areas)
+
+    for timestep in range(invl, 1+invl*n_step, invl):
+        # update mf, fharvcomb and graz intensity
+        nonraster_inputs['MF'] = nonraster_inputs['MF_all'][timestep-1, :, :]
+        nonraster_inputs['GI'] = nonraster_inputs['GI_all'][timestep-1, :, :]
+        nonraster_inputs['FH'] = nonraster_inputs['FH_all'][timestep-1, :, :]
+
+        # allocate single timestep
+        new_rasters, reg_prod = allocate_single_timestep(input_rasters, nonraster_inputs, timestep,
+                                                        ir_info)
+
+        # compute crop areas
+        crop_areas =  ans.compute_crop_areas(new_rasters['fracs'], input_rasters['A'],
+                                            input_rasters['R'])
+
+        np.save(f'outputs/reg_prod_{timestep}', reg_prod)
+        np.save(f'outputs/crop_areas_{timestep}', crop_areas)
+
+        # save difference maps
+        _ = ans.compute_diff_rasters(input_rasters['f'], new_rasters['fracs'], timestep-invl,
+                                     timestep, save=True)
+
+        # update variables (new_rasters -> input_rasters)
+        input_rasters['f'] = new_rasters['fracs']
+        input_rasters['lct'] = new_rasters['lct']
 
 @lfr.runtime_scope
 def main():
@@ -916,42 +986,13 @@ def main():
     ans.compute_largest_fraction(input_rasters['f'], input_rasters['is_cropland'], save=True)
 
     # compute crop yields from irrigated land
-    ir_yields = compute_irrigated_yield(input_rasters, nonraster_inputs)
-    ir_bool = get_irrigated_boolean(input_rasters)
-    ir_frac = compute_ir_frac(input_rasters)
-
-    # define timestep
-    timestep = 1
+    ir_info = {'ir_yields':compute_irrigated_yield(input_rasters, nonraster_inputs),
+               'ir_bool':get_irrigated_boolean(input_rasters),
+               'ir_frac':compute_ir_frac(input_rasters)}
 
     ##############################
-    # bit that should be looped...
-
-    # update mf, fharvcomb and graz intensity
-    nonraster_inputs['MF'] = nonraster_inputs['MF_all'][timestep-1, :, :]
-    nonraster_inputs['GI'] = nonraster_inputs['GI_all'][timestep-1, :, :]
-    nonraster_inputs['FH'] = nonraster_inputs['FH_all'][timestep-1, :, :]
-
-    # allocate single timestep
-    new_rasters, reg_prod = allocate_single_timestep(input_rasters, nonraster_inputs, timestep,
-                                                     ir_yields=ir_yields, ir_bool=ir_bool,
-                                                     ir_frac=ir_frac)
-
-    # compute crop areas
-    crop_areas =  ans.compute_crop_areas(new_rasters['fracs'], input_rasters['A'],
-                                         input_rasters['R'])
-
-    # for raster in new_rasters['fracs']:
-    #     lfr.wait(raster)
-    # lfr.wait(new_rasters['lct'])
-
-    np.save(f'outputs/reg_prod_{timestep}', reg_prod)
-    np.save(f'outputs/crop_areas_{timestep}', crop_areas)
-
-    # update variables (new_rasters -> input_rasters)
-    input_rasters['f'] = new_rasters['fracs']
-    input_rasters['lct'] = new_rasters['lct']
-
-    timestep += 1
+    # do the allocation!
+    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 10, 5)
     ##############################
 
     print(f"Time taken: {time()-start}")

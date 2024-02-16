@@ -52,6 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="read.html">read module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="write.html">write module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html">np_test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">analysis module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="md_files/Documentation%20Style.html">Documentation Style</a></li>
@@ -94,13 +95,13 @@
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.allocate_single_timestep"><code class="docutils literal notranslate"><span class="pre">allocate_single_timestep()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.back_to_lue"><code class="docutils literal notranslate"><span class="pre">back_to_lue()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_additional_rasters"><code class="docutils literal notranslate"><span class="pre">compute_additional_rasters()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_crop_areas"><code class="docutils literal notranslate"><span class="pre">compute_crop_areas()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_ir_frac"><code class="docutils literal notranslate"><span class="pre">compute_ir_frac()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_irrigated_yield"><code class="docutils literal notranslate"><span class="pre">compute_irrigated_yield()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_largest_fraction"><code class="docutils literal notranslate"><span class="pre">compute_largest_fraction()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.compute_potential_yield"><code class="docutils literal notranslate"><span class="pre">compute_potential_yield()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.get_irrigated_boolean"><code class="docutils literal notranslate"><span class="pre">get_irrigated_boolean()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.isolate_cropland"><code class="docutils literal notranslate"><span class="pre">isolate_cropland()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.map_tabulated_data"><code class="docutils literal notranslate"><span class="pre">map_tabulated_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.perform_allocation_loop"><code class="docutils literal notranslate"><span class="pre">perform_allocation_loop()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.prepare_for_np"><code class="docutils literal notranslate"><span class="pre">prepare_for_np()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.raster_s_to_np"><code class="docutils literal notranslate"><span class="pre">raster_s_to_np()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="landalloc.html#landalloc.reallocate_cropland_initial"><code class="docutils literal notranslate"><span class="pre">reallocate_cropland_initial()</span></code></a></li>
@@ -132,6 +133,7 @@
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.adjust_demand_surpassers"><code class="docutils literal notranslate"><span class="pre">adjust_demand_surpassers()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.compute_largest_fraction_np"><code class="docutils literal notranslate"><span class="pre">compute_largest_fraction_np()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.denan_integration_input"><code class="docutils literal notranslate"><span class="pre">denan_integration_input()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.fill_grass"><code class="docutils literal notranslate"><span class="pre">fill_grass()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.find_relevant_cells"><code class="docutils literal notranslate"><span class="pre">find_relevant_cells()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.find_sorted_indices"><code class="docutils literal notranslate"><span class="pre">find_sorted_indices()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.flatten_rasters"><code class="docutils literal notranslate"><span class="pre">flatten_rasters()</span></code></a></li>
@@ -144,6 +146,12 @@
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.unflatten_rasters"><code class="docutils literal notranslate"><span class="pre">unflatten_rasters()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.write_inputs"><code class="docutils literal notranslate"><span class="pre">write_inputs()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="np_test_module.html#np_test_module.write_regs"><code class="docutils literal notranslate"><span class="pre">write_regs()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="analysis.html">analysis module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#analysis.compute_crop_areas"><code class="docutils literal notranslate"><span class="pre">compute_crop_areas()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#analysis.compute_diff_rasters"><code class="docutils literal notranslate"><span class="pre">compute_diff_rasters()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html#analysis.compute_largest_fraction"><code class="docutils literal notranslate"><span class="pre">compute_largest_fraction()</span></code></a></li>
 </ul>
 </li>
 </ul>

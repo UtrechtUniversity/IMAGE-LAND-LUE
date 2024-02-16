@@ -631,6 +631,10 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
     print(f'unique extra fracs: {np.unique(extra_fracs)}')
     new_fracs_flat = old_fracs_flat + extra_fracs
 
+    # make sure no fraction is less than 0 or greater than 1 (due to rounding)
+    new_fracs_flat[new_fracs_flat<0.] = 0.0
+    new_fracs_flat[new_fracs_flat>1.] = 1.0
+
     return new_fracs_flat, reg_prod
 
 def fill_grass(fracs, ir_frac):

@@ -154,7 +154,8 @@ def read_input_rasters(data_dir="data/"):
     greg = read_raster_np(5, "greg_5min_int.nc", target_dtype='int')
     glct = read_raster_np(5, "GLCT.NC")
     gsuit = read_raster_np(5, "gsuit_new_world.nc")
-    garea = read_raster_np(5, "gareacell.nc")
+    # garea = read_raster_np(5, "gareacell.nc")
+    garea = read_raster_np(5, "GAREACELLNOWATER.nc")
 
     grmppc_maps = []
     fractions = []

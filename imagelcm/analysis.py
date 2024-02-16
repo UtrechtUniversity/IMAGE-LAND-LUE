@@ -81,7 +81,7 @@ def compute_crop_areas(fracs, garea, regions):
         u = u[where_valid_regions]
         corresponding_regions = corresponding_regions[where_valid_regions]
 
-        crop_areas[corresponding_regions-1, ind+1] = u
+        crop_areas[corresponding_regions-1, ind] = u
 
     # include regional/agricultural totals
     crop_areas[-1, :-1] = np.sum(crop_areas[:, :-1], axis=0)
@@ -89,7 +89,7 @@ def compute_crop_areas(fracs, garea, regions):
 
     return crop_areas
 
-def return_diff_rasters(fracs_1, fracs_2, timestep_1, timestep_2, save=False):
+def compute_diff_rasters(fracs_1, fracs_2, timestep_1, timestep_2, save=False):
     """
     Computes the difference in crop fractions from one timestep to another
 
@@ -116,12 +116,16 @@ def return_diff_rasters(fracs_1, fracs_2, timestep_1, timestep_2, save=False):
     """
     diff_rasters = []
 
+    print(f'fracs1 length: {len(fracs_1)}')
+    print(f'fracs2 length: {len(fracs_2)}')
+
     for crop in range(len(fracs_1)):
         diff_rasters.append(fracs_2[crop] - fracs_1[crop])
 
     if save:
         rd.check_wdir()
         for crop in range(len(diff_rasters)):
-            wt.write_raster(diff_rasters[crop], f'diff_crop_{crop}_t_{timestep_1}_{timestep_2}')
+            wt.write_raster(diff_rasters[crop],
+                            f'diff_rasters/diff_crop_{crop}_t_{timestep_2}_{timestep_1}')
 
     return diff_rasters
