@@ -103,10 +103,11 @@ def return_demand_ratios(demands, greg, r_bools, timestep):
     ----------
     demands : np.ndarray
               np array with shape (# timesteps, # G+F crops, # regions)
-    greg : lue data object
+    greg : lfr.PartitionedArray<int8>
            regions raster
-    r_bools : list of lue data objects
-              list containing the boolean maps computed by setup
+    r_bools : list
+              list containing the boolean rasters computed by setup, in
+              lue format
     timestep : int
                the current timestep
     
@@ -154,10 +155,11 @@ def return_grazintens_map(g_intens, greg, r_bools):
     ----------
     g_intens : np.ndarray
                np array with shape (# grazing systems, # regions)
-    greg : lue data object
+    greg : lfr.PartitionedArray<int8>
            regions raster
-    r_bools : list of lue data objects
-              list containing the boolean maps computed by setup
+    r_bools : list
+              list containing the boolean rasters computed by setup, in
+              lue format
     
     Returns
     -------
@@ -188,10 +190,11 @@ def return_mf_maps(mfs, greg, r_bools):
     ----------
     mfs : np.ndarray
           np array with shape (# crops, # regions)
-    greg : lue data object
+    greg : lfr.PartitionedArray<int8>
            regions raster
-    r_bools : list of lue data objects
-              list containing the boolean maps computed by setup
+    r_bools : list
+              list containing the boolean maps computed by setup, in
+              lue format
     
     Returns
     -------
@@ -227,7 +230,7 @@ def isolate_cropland(input_rasters):
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters.
+                    setup
     
     Returns
     -------
@@ -239,7 +242,7 @@ def isolate_cropland(input_rasters):
 
     See Also
     --------
-    read.read_input_rasters                 
+    setup               
     """
 
     # find cropland boolean raster
@@ -262,7 +265,7 @@ def get_irrigated_boolean(input_rasters):
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read.read_input_rasters.
+                    setup
 
     Returns
     -------
@@ -273,7 +276,7 @@ def get_irrigated_boolean(input_rasters):
     See Also
     --------
     isolate_cropland
-    read.read_input_rasters
+    setup
     """
 
     fractions = input_rasters['f']
@@ -291,7 +294,7 @@ def compute_ir_frac(input_rasters):
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read.read_input_rasters.
+                    setup
 
     Returns
     -------
@@ -301,7 +304,7 @@ def compute_ir_frac(input_rasters):
     See Also
     --------
     get_irrigated_boolean
-    read.read_input_rasters
+    setup
     """
 
     # separate out irrigated fractions
@@ -317,7 +320,34 @@ def compute_ir_frac(input_rasters):
 
 def map_tabulated_data(input_rasters, nonraster_inputs, timestep=1):
     """
-    Takes in tabular datasets (eg. management facs) and puts them on maps
+    Maps non-spatial data (eg. management facs) onto rasters in lue format
+
+    Parameters
+    ----------
+    input_rasters : dict
+                    dict containing the same items as that returned by
+                    setup
+    nonraster_inputs : Dict
+                       dict containing the same items as that returned by
+                       setup
+    timestep : int, default = 1
+               current timestep
+
+    RETURNS
+    -------
+    mapped_data : dict
+                  contains demand_ratios, a dictionary of lue arrays with
+                  the ratio in crop demand during the current and previous
+                  timestep for every crop, mapped onto corresponding world
+                  regions; demands, equivalent to demand_ratios but with
+                  the current demands rather than the ratio in demand;
+                  grazing intensities mapped onto corresponding regions;
+                  management factors mapped onto corresponding regions;
+                  frharvcombs mapped onto corresponding regions
+
+    See Also
+    --------
+    setup
     """
 
     # compute ratio of current demand to previous demand
@@ -354,11 +384,9 @@ def reallocate_cropland_initial(input_rasters, mapped_data, ir_frac):
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters, with the addition of the crop
-                    demand increase rasters output by return_demand_ratios
-                    and the existing cropland rasters output by
-                    isolate_cropland.
+                    setup
     mapped_data : dict
+                  the output of map_tabulated_data
     ir_frac : lfr.PartitionedArray<float32>
               raster-like array containing the total fraction of each cell
               allocated to irrigated crops, used to ensure normalisation
@@ -368,6 +396,11 @@ def reallocate_cropland_initial(input_rasters, mapped_data, ir_frac):
     new_fractions : list of lue data objects
                     list containing rasters for each new crop fraction.
                     NB: only for grass and rain-fed fod crops
+
+    See Also
+    --------
+    setup
+    map_tabulated_data
     """
 
     # relabel relevant input variables
@@ -430,7 +463,33 @@ def reallocate_cropland_initial(input_rasters, mapped_data, ir_frac):
 
 def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs):
     """
-    Compute potential yield raster-like LUE arrays in kT
+    Compute potential yield raster-like LUE arrays in [kT]
+
+    Parameters
+    ----------
+    fracs : list
+            list of lue arrays containing the crop fractions following
+            their recalculation in reallocate_cropland_initial
+    input_rasters : dict
+                    dict containing the same items as that returned by
+                    setup
+    mapped_data : dict
+                  the output of map_tabulated_data
+    nonraster_inputs : dict
+                       dict containing the same items as that returned by
+                       setup
+
+    Returns
+    -------
+    proj_yields : list
+                 list of lue arrays, 1 per crop, containing the projected
+                 crop yields in every cell, based on current fractions
+
+    See Also
+    --------
+    setup
+    map_tabulated_data
+    reallocated_cropland_initial
     """
 
     grmppc = input_rasters['p_c']
@@ -441,23 +500,28 @@ def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs)
     gi_map = mapped_data['GI_map']
 
     # crop-1 for f_harv as it has no grass value [NB: MF value for grass not used]
-    pot_yields = [fracs[crop] * grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1]
+    proj_yields = [fracs[crop] * grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1]
                   * mf_maps[crop] / 1000 for crop in range(1, prm.NGFC)]
-    pot_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * gi_map)
+    proj_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * gi_map)
 
-    return pot_yields
+    return proj_yields
 
 def compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs):
     """
     Computes yield factor, sdp factor and cropland bool
 
-    PARAMETERS
+    Parameters
     ----------
-    input_rasters
-    mapped_data
-    nonraster_inputs
+    input_rasters : dict
+                    dict containing the same items as that returned by
+                    setup
+    mapped_data : dict
+                  the output of map_tabulated_data
+    nonraster_inputs : dict
+                       dict containing the same items as that returned by
+                       setup
 
-    RETURNS
+    Returns
     -------
     yield_facs : list
                  list of lue PartitionedArrays containing the factor by
@@ -468,6 +532,11 @@ def compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs):
                which to multiply remaining crop demands, which can in turn
                be summed to compute the quantity known as sdempr.
                [sdp_facs] = [1000km^2 / T]
+
+    See Also
+    --------
+    setup
+    map_tabulated_data
     """
 
     grmppc = input_rasters['p_c']
@@ -490,7 +559,7 @@ def raster_s_to_np(raster_s, is_list=False, flatten=False):
     """
     Converts a lue array or list of lue arrays to a numpy ndarray
     
-    PARAMETERS
+    Parameters
     ----------
     raster_s : lue PartitionedArray or list of lue PartitionedArray
     is_list : Bool, default = False
@@ -499,7 +568,7 @@ def raster_s_to_np(raster_s, is_list=False, flatten=False):
     flatten : Bool
               True if the lue array(s) should be flattened
 
-    RETURNS
+    Returns
     -------
     out : np.ndarray
           3-dimensional when is_list=True, flatten=false; 2-dimensional
@@ -524,13 +593,13 @@ def prepare_for_np(to_be_converted):
     """
     Converts rasters to np format
 
-    PARAMETERS
+    Parameters
     ----------
     to_be_converted : dict
                       dictionary containing (lists of) lue
                       PartitionedArrays to be converted to np format
     
-    RETURNS
+    Returns
     -------
     world_shape : tuple
                   shape of the IMAGE-LAND rasters
@@ -592,12 +661,14 @@ def back_to_lue(arr, dtype='float'):
     """
     Converts np arrays (mostly new crop fractions) back to the LUE format
 
-    PARAMETERS
+    Parameters
     ----------
     arr : np.ndarray
           np array with 2 or 3 dimensions
+    dtype : str, default = 'float'
+            datatype of the elements of arr
     
-    RETURNS
+    Returns
     -------
     lue_out : lue PartitionedArray<> or list
               if arr is 2D, returns PartitionedArray; if arr is 3D,
@@ -621,7 +692,7 @@ def update_lcts(fracs, glct):
     """
     Changes LCTs to match re-allocated land [conversion is intantaneous]
 
-    PARAMETERS
+    Parameters
     ----------
     fracs : list
             list of lue PartitionedArrays containing the most recent crop
@@ -629,7 +700,7 @@ def update_lcts(fracs, glct):
     glct : lue PartitionedArray<>
            array containing the land cover types for every grid cell
     
-    RETURNS
+    Returns
     -------
     is_cropland : lue PartitionedArray<>
                   new array of booleans showing the extent of updated
@@ -667,20 +738,24 @@ def compute_irrigated_yield(input_rasters, nonraster_inputs):
     """
     Computes total yield of irrigated cropland for each crop and region
 
-    PARAMETERS
+    Parameters
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters
+                    setup
     non_raster_inputs : dict
                        dict containing the same items as that returned by
                        setup.
 
-    RETURNS
+    Returns
     -------
     ir_yields : np.ndarray
                 array of shape (NGFC, N_REG) containing the total regional
                 yields for all irrigated crops in all regions, in [kT]
+
+    See Also
+    --------
+    setup
     """
 
     fracs = input_rasters['f']
@@ -722,11 +797,11 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_info=
     """
     Runs the relevant functions to re-allocate all land for one timestep
 
-    PARAMETERS
+    Parameters
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters
+                    setup
     non_raster_inputs : dict
                        dict containing the same items as that returned by
                        setup.
@@ -737,11 +812,19 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_info=
               in which there is irrigated cropland and the irrigated crop
               fractions (isolated from the rain-fed crop fractions)
 
-    RETURNS
+    Returns
     -------
     new_rasters : dict
+                  contains a list of reallocated crop fractions across the
+                  whole map and a lue array with the reallocated land
+                  cover types (LCTs) in every grid cell
     reg_prod_updated : np.ndarray
                        crop production per region
+
+    See Also
+    --------
+    setup
+    reallocate_cropland_initial
     """
     # unpack ir_info
     ir_yields = ir_info['ir_yields']
@@ -899,11 +982,11 @@ def perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, n_step, in
     """
     (Re)allocates land for number of timesteps n_step at an interval invl
 
-    PARAMETERS
+    Parameters
     ----------
     input_rasters : dict
                     dict containing the same items as that returned by
-                    read_input_rasters
+                    setup
     non_raster_inputs : dict
                        dict containing the same items as that returned by
                        setup
@@ -918,12 +1001,12 @@ def perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, n_step, in
            the desired interval between each timestep [years]. For
            example, n_step=3 and invl=5 will lead to the model being run
            over years 5, 10 and 15.
-    """
-    # unpack irrigation info
-    ir_yields = ir_info['ir_yields']
-    ir_bool = ir_info['ir_bool']
-    ir_frac = ir_info['ir_frac']
 
+    See Also
+    --------
+    setup
+    allocate_single_timestep
+    """
     # compute and save initial crop areas
     crop_areas =  ans.compute_crop_areas(input_rasters['f'], input_rasters['A'],
                                     input_rasters['R'])
@@ -956,7 +1039,7 @@ def perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, n_step, in
 
 @lfr.runtime_scope
 def main():
-    """main function"""
+    """main function of new landcover model"""
 
     rd.check_wdir()
 

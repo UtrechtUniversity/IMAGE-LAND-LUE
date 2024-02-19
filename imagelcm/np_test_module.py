@@ -274,7 +274,7 @@ def denan_integration_input(array, dtype='float'):
     Returns
     -------
     new_array : np.ndarray
-                array of same dimensions as array
+                array of same dimensions as 'array'
     """
 
     new_array = array.copy()
@@ -297,14 +297,16 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
                  np array of shape (n_crops+1, n_lat, n_lon) containing
                  the quantity to be integrated (crop fractions multiplied
                  by the potential yield, area and relevant constants)
-    regs : np.ndarray
+    regs_flat : np.ndarray
            np array containing the regions for every cell in the map
     demand_maps : np.ndarray
                   np array of shape (#crops+grass, #lat, #lon), containing
                   the ratio in demands for each cell (same value for all
                   cells in a given region)
-    suit_map : np.ndarray
-               2D np array containing the suitabilities for each cell
+    suit_map_flat : np.ndarray
+                    1D np array containing the suitabilities for each cell
+    save : bool, default = False
+           whether to save the integrated output
     ir_yields : np.ndarray, default = None
                 array of shape (NFC, N_REG) containing the total regional
                 yields for all irrigated crops in all regions
@@ -364,8 +366,6 @@ def integrate_r1_fractions(integrands, regs_flat, demand_maps, suit_map_flat, sa
     # compute Boolean demands_met maps
     demands_met = integrated_maps < demand_maps
 
-    # still need to change values for yields > demands so it gives the same output as LUE function
-
     # save output arrays
     if save:
         np.save(f"test_IO/integrated_maps_{nr}_{nc}_{shape}", integrated_maps)
@@ -415,7 +415,7 @@ def find_relevant_cells(is_cropland, expansion=False):
     """
     Determines cells that are to be (re)allocated
 
-    PARAMETERS
+    Parameters
     ----------
     is_cropland : np.ndarray
                   2D array of bools with value True for cells belonging to
@@ -424,7 +424,7 @@ def find_relevant_cells(is_cropland, expansion=False):
                 whether cropland is being expanded. If so, current
                 cropland allocation will not be altered
 
-    RETURNS
+    Returns
     -------
     cells_relevant : np.ndarray
                      flattened array stating whether cells are to be
@@ -440,7 +440,7 @@ def adjust_demand_surpassers(cell_fracs, prod_reg, yield_facs_cell, demands_reg,
     """
     Identify whether there are overproduced crops in a cell; fix as needed
 
-    PARAMETERS
+    Parameters
     ----------
     cell_fracs : np.ndarray
                  1D array of length # crops, containing the initial
@@ -460,7 +460,7 @@ def adjust_demand_surpassers(cell_fracs, prod_reg, yield_facs_cell, demands_reg,
     incl_grass : bool, default = True
                  True if grass production is to be checked; False if not
 
-    RETURNS
+    Returns
     -------
     cell_fracs : np.ndarray
                  updated crop fractions in the current cell
@@ -539,7 +539,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
               1D array containing the total fraction of each cell
               allocated to irrigated crops, used to ensure normalisation
 
-    RETURNS
+    Returns
     -------
     new_fracs_flat : np.ndarray
                      array of shape (# crops, # latitudes * # longitudes)
@@ -641,7 +641,7 @@ def fill_grass(fracs, ir_frac):
     """
     Fill remainder of cells featuring irrigated crops with grass
 
-    PARAMETERS
+    Parameters
     ----------
     fracs : np.ndarray
             2D array containing the crop fractions for grass and rain-fed
@@ -650,7 +650,7 @@ def fill_grass(fracs, ir_frac):
               1D array containing the total fraction of each cell
               allocated to irrigated crops, used to ensure normalisation
     
-    RETURNS
+    Returns
     -------
     fracs : np.ndarray
             updated crop flattened crop fractions
@@ -667,7 +667,6 @@ def fill_grass(fracs, ir_frac):
     grass_fracs[to_be_filled] += (1.0 - f_sum[to_be_filled])
 
     return fracs
-
 
 def flatten_rasters(raster_like):
     """

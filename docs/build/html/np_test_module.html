@@ -172,7 +172,7 @@ in the region to which the cell belongs</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>new_array</strong> – array of same dimensions as array</p>
+<dd class="field-even"><p><strong>new_array</strong> – array of same dimensions as ‘array’</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>np.ndarray</p>
@@ -295,11 +295,12 @@ every crop</p>
 <li><p><strong>integrands</strong> (<em>np.ndarray</em>) – np array of shape (n_crops+1, n_lat, n_lon) containing
 the quantity to be integrated (crop fractions multiplied
 by the potential yield, area and relevant constants)</p></li>
-<li><p><strong>regs</strong> (<em>np.ndarray</em>) – np array containing the regions for every cell in the map</p></li>
+<li><p><strong>regs_flat</strong> (<em>np.ndarray</em>) – np array containing the regions for every cell in the map</p></li>
 <li><p><strong>demand_maps</strong> (<em>np.ndarray</em>) – np array of shape (#crops+grass, #lat, #lon), containing
 the ratio in demands for each cell (same value for all
 cells in a given region)</p></li>
-<li><p><strong>suit_map</strong> (<em>np.ndarray</em>) – 2D np array containing the suitabilities for each cell</p></li>
+<li><p><strong>suit_map_flat</strong> (<em>np.ndarray</em>) – 1D np array containing the suitabilities for each cell</p></li>
+<li><p><strong>save</strong> (<em>bool</em><em>, </em><em>default = False</em>) – whether to save the integrated output</p></li>
 <li><p><strong>ir_yields</strong> (<em>np.ndarray</em><em>, </em><em>default = None</em>) – array of shape (NFC, N_REG) containing the total regional
 yields for all irrigated crops in all regions</p></li>
 </ul>

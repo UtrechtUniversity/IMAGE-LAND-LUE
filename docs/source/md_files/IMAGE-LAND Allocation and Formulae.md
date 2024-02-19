@@ -1,7 +1,5 @@
 # IMAGE-LAND Allocation and Formulae
 
-This page briefly describes the allocation of land to food crops and grassland in IMAGE-LAND, detailing the equations used to calculate the fractions at each stage. The specifics of biofuel crops and timber production in IMAGE-LAND are omitted from this description.
-
 The IMAGE-LAND grid is made up of cells with a side length of 5 arc-minutes, resulting in a 4320 by 2160 cell map. Each of these cells comprises 16 fractions, 1 for each food crop, alongside other fractions which are not explicitly considered for the time being. IMAGE-Land features 20 <a href='Land Cover Types.html'>Land Cover Types</a>, the first two of which are agricultural land - also referred to as cropland - and extensive grassland. Extensive grassland is the land cover type allocated to agricultural land which has fallen below a threshold of productivity (WHICH VALUE?).
 
 Cells with non-cropland land-cover types are made up entirely of crop fractions of 0, with the exception of extensive grassland, which is a special case where cropland is so low productivity that it has been recategorised. Within cropland, each cell is allocated entirely to food crops and grassland.
@@ -22,7 +20,7 @@ $$
 Once these quantities have been obtained, the non-grass crops are looped through again, so that the fractions allocated to each of them can be computed, following
 
 $$
-    f_{c, t} = f_{c, t-1}MF_c\frac{d_{c, t}}{d_{c, t-1}}\frac{cf_3}{cf_1}.\tag{4}
+    f_{c, t} = \frac{f_{c, t-1}}{MF_c}\frac{d_{c, t}}{d_{c, t-1}}\frac{cf_3}{cf_1}.\tag{4}
 $$
 If the sum of all crop fractions, $F_{c, t}<1$, then the remainder of the cell is allocated to grass. The reallocation of existing cropland leads to **one** of 3 broad outcomes:
 1. The demand for every crop is met before all existing cropland is reallocated.

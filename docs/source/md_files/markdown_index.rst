@@ -1,15 +1,19 @@
 General Model Information
 =========================
 
+llkl
+
 .. toctree::
    :maxdepth: 4
 
-   Inputs
    IMAGE-LAND Allocation and Formulae
    Land Cover Types
    Food Crops
+   Biofuel Crops
    Grass
    Management Factor
    Function Request
-   Legacy IMAGE-LAND
+   Inputs
+   Key Differences
+   Original IMAGE-LAND
 

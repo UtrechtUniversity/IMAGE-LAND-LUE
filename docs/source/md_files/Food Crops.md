@@ -23,5 +23,7 @@ The demands for these food crops are output by IMAGE's ADM module, in AGRPRODC.O
 
 AGRPRODC.OUT and the npy file store both the demand for food crops and the demand for <a href='grass.html'>grass</a>, which is sometimes referred to in the code as the zeroth food crop.
 
+## Rain-fed and irrigated crops
+
 ## Allocation
 To read about how land is allocated to growing food crops - as well as grass - see <a href='IMAGE-LAND Allocation and Formulae.html'>IMAGE-LAND Allocation and Formulae</a>.

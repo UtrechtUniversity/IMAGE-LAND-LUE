@@ -109,28 +109,35 @@
 <p>Calls the functions in read.py and allocates land.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="landalloc.allocate_single_timestep">
-<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">allocate_single_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_yields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_bool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_frac</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.allocate_single_timestep" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">allocate_single_timestep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.allocate_single_timestep" title="Permalink to this definition"></a></dt>
 <dd><p>Runs the relevant functions to re-allocate all land for one timestep</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read_input_rasters</p></li>
+setup</p></li>
 <li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
 setup.</p></li>
 <li><p><strong>timestep</strong> (<em>int</em>) – current model timestep</p></li>
-<li><p><strong>ir_yields</strong> (<em>np.ndarray</em>) – array of shape (N_REG, NFGC) containing the regional crop
-yields of all irrigated crops</p></li>
+<li><p><strong>ir_info</strong> (<em>dict</em><em>, </em><em>default = None</em>) – dictionary containing the irrigated crop yields, the areas
+in which there is irrigated cropland and the irrigated crop
+fractions (isolated from the rain-fed crop fractions)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>new_rasters</strong> (<em>dict</em>)</p></li>
+<li><p><strong>new_rasters</strong> (<em>dict</em>) – contains a list of reallocated crop fractions across the
+whole map and a lue array with the reallocated land
+cover types (LCTs) in every grid cell</p></li>
 <li><p><strong>reg_prod_updated</strong> (<em>np.ndarray</em>) – crop production per region</p></li>
 </ul>
 </p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>, <a class="reference internal" href="#landalloc.reallocate_cropland_initial" title="landalloc.reallocate_cropland_initial"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reallocate_cropland_initial</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -139,7 +146,10 @@ yields of all irrigated crops</p></li>
 <dd><p>Converts np arrays (mostly new crop fractions) back to the LUE format</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>arr</strong> (<em>np.ndarray</em>) – np array with 2 or 3 dimensions</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arr</strong> (<em>np.ndarray</em>) – np array with 2 or 3 dimensions</p></li>
+<li><p><strong>dtype</strong> (<em>str</em><em>, </em><em>default = 'float'</em>) – datatype of the elements of arr</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>lue_out</strong> – if arr is 2D, returns PartitionedArray; if arr is 3D,
@@ -158,9 +168,11 @@ returns a list of PartionedArrays</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_rasters</strong> – </p></li>
-<li><p><strong>mapped_data</strong> – </p></li>
-<li><p><strong>nonraster_inputs</strong> – </p></li>
+<li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+<li><p><strong>mapped_data</strong> (<em>dict</em>) – the output of map_tabulated_data</p></li>
+<li><p><strong>nonraster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -176,6 +188,10 @@ be summed to compute the quantity known as sdempr.
 </p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>, <a class="reference internal" href="#landalloc.map_tabulated_data" title="landalloc.map_tabulated_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_tabulated_data</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -185,7 +201,7 @@ be summed to compute the quantity known as sdempr.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read.read_input_rasters.</p>
+setup</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ir_frac</strong> – raster containing total irrigated crop fractions</p>
@@ -196,7 +212,7 @@ read.read_input_rasters.</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#landalloc.get_irrigated_boolean" title="landalloc.get_irrigated_boolean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_irrigated_boolean</span></code></a>, <a class="reference internal" href="read.html#read.read_input_rasters" title="read.read_input_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read.read_input_rasters</span></code></a></p>
+<p><a class="reference internal" href="#landalloc.get_irrigated_boolean" title="landalloc.get_irrigated_boolean"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_irrigated_boolean</span></code></a>, <a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -208,7 +224,7 @@ read.read_input_rasters.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read_input_rasters</p></li>
+setup</p></li>
 <li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
 setup.</p></li>
 </ul>
@@ -221,12 +237,40 @@ yields for all irrigated crops in all regions, in [kT]</p>
 <dd class="field-odd"><p>np.ndarray</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landalloc.compute_potential_yield">
 <span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">compute_potential_yield</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fracs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapped_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.compute_potential_yield" title="Permalink to this definition"></a></dt>
-<dd><p>Compute potential yield raster-like LUE arrays in kT</p>
+<dd><p>Compute potential yield raster-like LUE arrays in [kT]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fracs</strong> (<em>list</em>) – list of lue arrays containing the crop fractions following
+their recalculation in reallocate_cropland_initial</p></li>
+<li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+<li><p><strong>mapped_data</strong> (<em>dict</em>) – the output of map_tabulated_data</p></li>
+<li><p><strong>nonraster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>proj_yields</strong> – list of lue arrays, 1 per crop, containing the projected
+crop yields in every cell, based on current fractions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>, <a class="reference internal" href="#landalloc.map_tabulated_data" title="landalloc.map_tabulated_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_tabulated_data</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">reallocated_cropland_initial</span></code></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -236,7 +280,7 @@ yields for all irrigated crops in all regions, in [kT]</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read.read_input_rasters.</p>
+setup</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>has_irrigated</strong> – raster of Booleans indicated where there is the
@@ -248,7 +292,7 @@ presence of irrigated cropland</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#landalloc.isolate_cropland" title="landalloc.isolate_cropland"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isolate_cropland</span></code></a>, <a class="reference internal" href="read.html#read.read_input_rasters" title="read.read_input_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read.read_input_rasters</span></code></a></p>
+<p><a class="reference internal" href="#landalloc.isolate_cropland" title="landalloc.isolate_cropland"><code class="xref py py-obj docutils literal notranslate"><span class="pre">isolate_cropland</span></code></a>, <a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
 </div>
 </dd></dl>
 
@@ -259,7 +303,7 @@ presence of irrigated cropland</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read_input_rasters.</p>
+setup</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>new_rasters</strong> – dict containing the same items as input_rasters, with
@@ -273,14 +317,42 @@ fractions</p>
 </dl>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
-<p><a class="reference internal" href="read.html#read.read_input_rasters" title="read.read_input_rasters"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read.read_input_rasters</span></code></a></p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
 </div>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landalloc.map_tabulated_data">
 <span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">map_tabulated_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonraster_inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timestep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.map_tabulated_data" title="Permalink to this definition"></a></dt>
-<dd><p>Takes in tabular datasets (eg. management facs) and puts them on maps</p>
+<dd><p>Maps non-spatial data (eg. management facs) onto rasters in lue format</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+<li><p><strong>nonraster_inputs</strong> (<em>Dict</em>) – dict containing the same items as that returned by
+setup</p></li>
+<li><p><strong>timestep</strong> (<em>int</em><em>, </em><em>default = 1</em>) – current timestep</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>mapped_data</strong> – contains demand_ratios, a dictionary of lue arrays with
+the ratio in crop demand during the current and previous
+timestep for every crop, mapped onto corresponding world
+regions; demands, equivalent to demand_ratios but with
+the current demands rather than the ratio in demand;
+grazing intensities mapped onto corresponding regions;
+management factors mapped onto corresponding regions;
+frharvcombs mapped onto corresponding regions</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -291,7 +363,7 @@ fractions</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read_input_rasters</p></li>
+setup</p></li>
 <li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
 setup</p></li>
 <li><p><strong>ir_info</strong> (<em>dict</em>) – dictionary containing the irrigated crop yields, the areas
@@ -305,6 +377,10 @@ over years 5, 10 and 15.</p></li>
 </ul>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>, <a class="reference internal" href="#landalloc.allocate_single_timestep" title="landalloc.allocate_single_timestep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">allocate_single_timestep</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -353,19 +429,16 @@ flatten=True; 1-dimensional when is_list=False, flatten=True</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="landalloc.reallocate_cropland_initial">
-<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">reallocate_cropland_initial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapped_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.reallocate_cropland_initial" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">landalloc.</span></span><span class="sig-name descname"><span class="pre">reallocate_cropland_initial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_rasters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapped_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ir_frac</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#landalloc.reallocate_cropland_initial" title="Permalink to this definition"></a></dt>
 <dd><p>Executes the first step of reallocating existing cropland.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>input_rasters</strong> (<em>dict</em>) – dict containing the same items as that returned by
-read_input_rasters, with the addition of the crop
-demand increase rasters output by return_demand_ratios
-and the existing cropland rasters output by
-isolate_cropland.</p></li>
-<li><p><strong>non_raster_inputs</strong> (<em>dict</em>) – dict containing the same items as that returned by
-setup.</p></li>
-<li><p><strong>mapped_data</strong> (<em>dict</em>) – </p></li>
+setup</p></li>
+<li><p><strong>mapped_data</strong> (<em>dict</em>) – the output of map_tabulated_data</p></li>
+<li><p><strong>ir_frac</strong> (<em>lfr.PartitionedArray&lt;float32&gt;</em>) – raster-like array containing the total fraction of each cell
+allocated to irrigated crops, used to ensure normalisation</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -376,6 +449,10 @@ NB: only for grass and rain-fed fod crops</p>
 <dd class="field-odd"><p>list of lue data objects</p>
 </dd>
 </dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#landalloc.setup" title="landalloc.setup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">setup</span></code></a>, <a class="reference internal" href="#landalloc.map_tabulated_data" title="landalloc.map_tabulated_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_tabulated_data</span></code></a></p>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -413,8 +490,9 @@ every food crop and grass</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>demands</strong> (<em>np.ndarray</em>) – np array with shape (# timesteps, # G+F crops, # regions)</p></li>
-<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
-<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+<li><p><strong>greg</strong> (<em>lfr.PartitionedArray&lt;int8&gt;</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em>) – list containing the boolean rasters computed by setup, in
+lue format</p></li>
 <li><p><strong>timestep</strong> (<em>int</em>) – the current timestep</p></li>
 </ul>
 </dd>
@@ -441,8 +519,9 @@ relative to the previous timestep</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>g_intens</strong> (<em>np.ndarray</em>) – np array with shape (# grazing systems, # regions)</p></li>
-<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
-<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+<li><p><strong>greg</strong> (<em>lfr.PartitionedArray&lt;int8&gt;</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em>) – list containing the boolean rasters computed by setup, in
+lue format</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -466,8 +545,9 @@ relative to the previous timestep</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mfs</strong> (<em>np.ndarray</em>) – np array with shape (# crops, # regions)</p></li>
-<li><p><strong>greg</strong> (<em>lue data object</em>) – regions raster</p></li>
-<li><p><strong>r_bools</strong> (<em>list</em><em> of </em><em>lue data objects</em>) – list containing the boolean maps computed by setup</p></li>
+<li><p><strong>greg</strong> (<em>lfr.PartitionedArray&lt;int8&gt;</em>) – regions raster</p></li>
+<li><p><strong>r_bools</strong> (<em>list</em>) – list containing the boolean maps computed by setup, in
+lue format</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

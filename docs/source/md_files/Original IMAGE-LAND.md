@@ -1,4 +1,4 @@
-# Legacy IMAGE-LAND
+# Original IMAGE-LAND
 
 This page offers an overview of the 3 main subroutines in the allocation and management of land for crops and grassland in the IMAGE-LAND sub-model. For an overview of IMAGE-LAND that does not delve into the individual FORTRAN files and synthesises the processes outlined here in a more general explanation and set of equations, please see <a href='IMAGE-LAND Allocation and Formulae.html'>IMAGE-LAND Allocation and Formulae</a>.
 
