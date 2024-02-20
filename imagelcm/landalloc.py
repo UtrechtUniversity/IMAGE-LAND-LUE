@@ -680,7 +680,7 @@ def back_to_lue(arr, dtype='float'):
     shp = arr.shape
     if len(shp)==3:
         raster_shape = (shp[1], shp[2]/2)
-        lue_out = [lfr.from_numpy(arr[ind, :, :], raster_shape) for ind in range(shp[0])]
+        lue_out = [lfr.from_numpy(arr[ind, :, :], partition_shape=raster_shape) for ind in range(shp[0])]
     elif len(shp)==2:
         lue_out = lfr.from_numpy(arr, (shp[0], shp[1]/2))
     else:

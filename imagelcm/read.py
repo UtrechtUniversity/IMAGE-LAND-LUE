@@ -119,7 +119,7 @@ def read_raster_np(res, file_name, data_dir="data/", target_dtype='float'):
         raster_np = raster_np[0, :, :]
 
     # raster = lfr.from_gdal(path_name, shape) # pylint: disable=no-member
-    raster = lfr.from_numpy(raster_np, shape) # pylint: disable=no-member
+    raster = lfr.from_numpy(raster_np, partition_shape=shape) # pylint: disable=no-member
 
     # ensure datatype is float, not int
     if target_dtype=='float' and raster.dtype==np.int32:

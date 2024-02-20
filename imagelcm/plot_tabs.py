@@ -22,7 +22,6 @@ grass_dem = np.load('data/grass_crop_demands.npy')
 food_dem = np.concatenate((grass_dem[:, 2, np.newaxis, :], food_dem), axis=1)
 
 print(grass_dem.shape)
-print(food_dem.shape)
 
 food_prod = np.swapaxes(reg_prod[:, 1:], 0, 1)
 food_dem_1 = food_dem[1, :, :]
@@ -30,15 +29,18 @@ food_dem_1 = food_dem[1, :, :]
 grass_prod = reg_prod[:, 0]
 grass_mismatch = grass_dem[1, 2, :] - grass_prod
 
+print(grass_prod.shape)
+
 ####### quick demand met test ########
 # print(food_prod)
 # print(food_dem_1)
-mismatch = food_dem[1, 1:, :] - food_prod
+# mismatch = food_dem[1, 1:, :] - food_prod
 # mismatch[np.abs(mismatch)<prm.EPS] = 0.0
 # print(mismatch)
 
-# print(grass_mismatch)
+print(grass_mismatch)
 ######################################
+
 def load_tab(name, n_steps, invl, zero_start=False):
     """
     Loads and concatenates tabulated data for plotting of timeseries
@@ -187,7 +189,7 @@ def main():
     # divide by a million
     crop_area_ts /= 1e6
 
-    print(crop_area_ts[1, 0, :])
+    # print(crop_area_ts[1, 0, :])
 
     # make a fraction of initial values
     # crop_area_ts /= crop_area_ts[0, :, :]

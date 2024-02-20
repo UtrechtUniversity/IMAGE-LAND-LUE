@@ -22,7 +22,7 @@ IMAGE-LAND features 20 land cover types (LCTs), namely:
 19. Tropical woodland
 20. Tropical forest.
 
-Extensive grassland is the land cover type allocated to agricultural land, the productivity of which has fallen below 20% of the maximum productivity of each crop.
+Extensive grassland is the land cover type allocated to agricultural land when its productivity falld below 20% of the maximum productivity of each crop.
 
 ## Conversion
 The two types of land conversion currently implemented in IMAGE-LAND-LUE occur when agricultural land is abandoned (following a drop in crop demands) and when agricultural land is expanded.
