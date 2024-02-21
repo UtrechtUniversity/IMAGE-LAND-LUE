@@ -26,6 +26,7 @@ GIs = np.load('data/GI.npy')
 # print(MFs[0, :prm.NFC, :])
 
 print(GIs.shape)
+print(GIs[0, :, :])
 
 # R1_integration = np.load('outputs/regional_prods_R1.npy')
 # print(R1_integration)

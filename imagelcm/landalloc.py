@@ -172,8 +172,8 @@ def return_grazintens_map(g_intens, greg, r_bools):
     setup
     """
 
-    # assume all grazing regime 1, for now
-    g_intens = g_intens[0, :]
+    # assume all grazing system total, for now
+    g_intens = g_intens[2, :]
 
     g_intens_map = lfr.cast(greg, np.float32)
     for reg in range(prm.N_REG):
@@ -1075,7 +1075,7 @@ def main():
 
     ##############################
     # do the allocation!
-    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 1, 5)
+    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 5, 5)
     ##############################
 
     print(f"Time taken: {time()-start}")

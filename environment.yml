@@ -1,0 +1,19 @@
+name: pcraster
+channels:
+  - defaults
+dependencies:
+  - lue
+  - pcraster
+  - campo
+  - netcdf4
+  - cartopy
+  - psutil
+  - tqdm
+  - glances
+  - rasterio
+  - openpyxl
+  - sphinx
+  - sphinx_rtd_theme
+  - linkify-it-py
+  - recommonmark
+  - myst-parser=0.19.1

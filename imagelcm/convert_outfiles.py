@@ -69,7 +69,7 @@ def convert_management_outfiles(manage_type):
     crop_attrs = {"MF": {"name": "MF.OUT",
                          "n_crops": prm.NGFBC},
                   "GI": {"name": "GRAZINTENS.OUT",
-                         "n_crops": prm.NGS},
+                         "n_crops": prm.NGST},
                   "FH": {"name": "FRHARVCOMB.OUT",
                          "n_crops": prm.NFBFC}}.get(manage_type)
 
@@ -99,6 +99,7 @@ def convert_management_outfiles(manage_type):
         current_block = tb.split("\r\n")[1:] # will have length n_crops
         for crop in range(crop_attrs['n_crops']):
             block_crop = current_block[crop].split("   ")[1:] # will have length n_regions
+            print(block_crop)
             management_values[time_ind, crop, :] = np.asarray(block_crop).astype(np.float32)
 
     # save array as .npy binary file

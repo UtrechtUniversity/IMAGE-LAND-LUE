@@ -3,7 +3,6 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 import sphinx_rtd_theme
-# import lue
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -25,7 +24,7 @@ sys.path.insert(0, os.path.abspath('C:\\Users\\2331764\\AppData\\Local\\anaconda
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'ImageLCM'
-copyright = '2023, Ben Romero-Wilcock'
+copyright = '2023, Utrecht University'
 author = 'Ben Romero-Wilcock'
 release = '0.1'
 
