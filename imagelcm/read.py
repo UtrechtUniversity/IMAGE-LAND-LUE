@@ -68,7 +68,7 @@ def read_raster(res, file_name, data_dir="data/"):
 
     path_name = data_dir + file_name
 
-    raster = lfr.from_gdal(path_name, shape) # pylint: disable=no-member
+    raster = lfr.from_gdal(path_name, partition_shape=shape) # pylint: disable=no-member
 
     # ensure datatype is float, not int
     if raster.dtype==np.int32:

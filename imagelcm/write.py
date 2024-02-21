@@ -47,13 +47,13 @@ def write_np_raster(file_name, array, output_dir='outputs/'):
 
     if len(shape)==3:
         for ind in range(shape[0]):
-            lue_array = lfr.from_numpy(array[ind, :, :], shape[1:])
+            lue_array = lfr.from_numpy(array[ind, :, :], partition_shape=shape[1:])
             # prevent GDAL tiff directory count error
             lfr.wait(lue_array)
             lfr.to_gdal(lue_array, f'{output_dir}{file_name}_{ind}.tif')
 
     elif len(shape)==2:
-        lue_array = lfr.from_numpy(array, shape)
+        lue_array = lfr.from_numpy(array, partition_shape=shape)
         lfr.wait(lue_array)
         lfr.to_gdal(lue_array, f'{output_dir}{file_name}.tif')
 
