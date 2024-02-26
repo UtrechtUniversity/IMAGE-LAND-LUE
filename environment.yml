@@ -1,15 +1,11 @@
-name: pcraster
+name: image
 channels:
-  - defaults
+  - conda-forge
 dependencies:
   - lue
-  - pcraster
-  - campo
   - netcdf4
-  - cartopy
   - psutil
   - tqdm
-  - glances
   - rasterio
   - openpyxl
   - sphinx

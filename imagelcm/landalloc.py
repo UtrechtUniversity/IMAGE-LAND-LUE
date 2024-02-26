@@ -172,8 +172,8 @@ def return_grazintens_map(g_intens, greg, r_bools):
     setup
     """
 
-    # assume all grazing system total, for now
-    g_intens = g_intens[2, :]
+    # assume all grazing intensive, for now
+    g_intens = g_intens[0, :]
 
     g_intens_map = lfr.cast(greg, np.float32)
     for reg in range(prm.N_REG):
@@ -461,9 +461,9 @@ def reallocate_cropland_initial(input_rasters, mapped_data, ir_frac):
 
     return new_fractions
 
-def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs):
+def compute_projected_yield(fracs, input_rasters, mapped_data, nonraster_inputs):
     """
-    Compute potential yield raster-like LUE arrays in [kT]
+    Compute projected yield raster-like LUE arrays in [kT]
 
     Parameters
     ----------
@@ -499,10 +499,15 @@ def compute_potential_yield(fracs, input_rasters, mapped_data, nonraster_inputs)
     mf_maps = mapped_data['MF_maps']
     gi_map = mapped_data['GI_map']
 
-    # crop-1 for f_harv as it has no grass value [NB: MF value for grass not used]
+    # crop-1 for f_harv as it has no grass value
     proj_yields = [fracs[crop] * grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1]
                   * mf_maps[crop] / 1000 for crop in range(1, prm.NGFC)]
-    proj_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * gi_map)
+
+    # grass
+    if prm.MF_AS_GI:
+        proj_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * mf_maps[0] / 1000)
+    else:
+        proj_yields.insert(0, fracs[0] * grmppc[0] * max_pr[0] * garea * gi_map / 1000)
 
     return proj_yields
 
@@ -546,10 +551,15 @@ def compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs):
     mf_maps = mapped_data['MF_maps']
     gi_map = mapped_data['GI_map']
 
-    # crop-1 for f_harv as it has no grass value [NB: MF value for grass not used]
+    # crop-1 for f_harv as it has no grass value
     yield_facs = [grmppc[crop] * max_pr[crop] * garea * f_harv[crop-1] * mf_maps[crop] / 1000
                  for crop in range(1, prm.NGFC)]
-    yield_facs.insert(0, grmppc[0] * max_pr[0] * garea * gi_map)
+
+    # grass
+    if prm.MF_AS_GI:
+        yield_facs.insert(0, grmppc[0] * max_pr[0] * garea * mf_maps[0] / 1000)
+    else:
+        yield_facs.insert(0, grmppc[0] * max_pr[0] * garea * gi_map / 1000)
 
     sdp_facs = [1000 * grmppc[crop] / max_pr[crop] for crop in range(prm.NGFC)]
 
@@ -680,7 +690,8 @@ def back_to_lue(arr, dtype='float'):
     shp = arr.shape
     if len(shp)==3:
         raster_shape = (shp[1], shp[2]/2)
-        lue_out = [lfr.from_numpy(arr[ind, :, :], partition_shape=raster_shape) for ind in range(shp[0])]
+        lue_out = [lfr.from_numpy(arr[ind, :, :], partition_shape=raster_shape)
+                   for ind in range(shp[0])]
     elif len(shp)==2:
         lue_out = lfr.from_numpy(arr, (shp[0], shp[1]/2))
     else:
@@ -852,13 +863,13 @@ def allocate_single_timestep(input_rasters, nonraster_inputs, timestep, ir_info=
     # combine reallocated fracs with biofuel and irrigated crop fractions (python list joining)
     all_fracs_r1 = fracs_r1 + input_rasters['f'][prm.NGFC:]
 
-    # compute potential yields
-    pot_yields = compute_potential_yield(fracs_r1, input_rasters, mapped_data, nonraster_inputs)
+    # compute projected yields
+    pot_yields = compute_projected_yield(fracs_r1, input_rasters, mapped_data, nonraster_inputs)
 
     # (start LUE) computing (of) yield and sdp factors
     yield_facs, sdp_facs = compute_additional_rasters(input_rasters, mapped_data, nonraster_inputs)
 
-    # save first-stage crop reallocation, potential yield and is_cropland tiffs
+    # save first-stage crop reallocation, projected yield and is_cropland tiffs
     if prm.CHECK_IO:
         for crop, raster in enumerate(fracs_r1):
             wt.write_raster(raster, f'R1_crop_{crop}')
@@ -1075,7 +1086,7 @@ def main():
 
     ##############################
     # do the allocation!
-    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 5, 5)
+    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 10, 5)
     ##############################
 
     print(f"Time taken: {time()-start}")

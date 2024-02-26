@@ -39,5 +39,10 @@ NGST = NGS + 1 # NGS + 'total'
 # number of regions (excl. greenland)
 N_REG = 26
 
+# whether to use grass management factor as de-facto grazing intensity
+MF_AS_GI = True
+
+# whether to use np or lue integrate function
+
 # whether to print inputs and ouputs throughout the model for debugging
 CHECK_IO = False

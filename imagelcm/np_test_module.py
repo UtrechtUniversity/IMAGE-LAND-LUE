@@ -580,7 +580,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
                                                                     yield_facs_flat[:, ind],
                                                                     reg_demands[reg-1, :])
 
-                    # compute potential yield, regional prod boolean array and sum of fractions
+                    # compute projected yield, regional prod boolean array and sum of fractions
                     yields[:, ind] = old_fracs_flat[:, ind] * yield_facs_flat[:, ind]
                     reg_prod[reg-1, :] += yields[:, ind]
                     f_sum = old_fracs_flat[:, ind].sum()
@@ -597,7 +597,7 @@ def integration_allocation(sdp_facs_flat, yield_facs_flat, old_fracs_flat, regs_
 
                     # allocate (rest of) new crop fractions (NOT GRASS!!!)
                     if sdp>prm.EPS:
-                        extra_fracs[1:, ind] = ((1-f_sum) * sdp_facs_flat[1:, ind] / sdp
+                        extra_fracs[1:, ind] = (((1-f_sum) * sdp_facs_flat[1:, ind]) / sdp
                                                 * dem_remain[1:])
 
                     # de-NaN extra_fracs
