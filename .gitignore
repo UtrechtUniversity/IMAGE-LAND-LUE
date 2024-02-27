@@ -22,8 +22,15 @@
 imagelcm/data/
 imagelcm/outputs/
 
-# sphinx build filetypes
+# sphinx build files
 *.html
 *.doctree
 *.js
 *.css
+*.png 
+*.svg 
+*.eot 
+*.ttf 
+*.woff 
+*.woff2
+
