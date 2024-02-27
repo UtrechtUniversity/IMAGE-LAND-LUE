@@ -1,4 +1,4 @@
-# maps
+# rasters
 *.map
 *.tif
 *.tiff
@@ -6,7 +6,7 @@
 *.NC
 *.xml
 
-# non-map data files
+# non-raster data files
 *.txt
 *.xlsx
 *.npy
@@ -16,8 +16,14 @@
 *.const
 *.OUT
 
-# model output maps
+# model output rasters
 
 # data folders
 imagelcm/data/
 imagelcm/outputs/
+
+# sphinx build filetypes
+*.html
+*.doctree
+*.js
+*.css
