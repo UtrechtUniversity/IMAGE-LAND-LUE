@@ -1,8 +1,50 @@
 """
-Write output files from lue framework to netcdfs.
+Write output files and ensure correct relative file paths.
 """
+import os
 import xarray as xr
 import lue.framework as lfr
+import read as rd
+
+def create_folder(dir_name, rel_path=""):
+    """
+    Checks for existance of a directory and creates it if necessary
+
+    PARAMETERS
+    ----------
+    dir_name : str
+               name of the directory to be created (if necessary)
+    rel_path : str, default = ""
+               path between current working directory and target directory
+    """
+    # Get the current working directory
+    current_directory = os.getcwd()
+
+    # Create the full path of the folder
+    folder_path = os.path.join(current_directory, rel_path, dir_name)
+
+    # Check if the folder already exists
+    if not os.path.exists(folder_path):
+        # If not, create the folder
+        os.makedirs(folder_path)
+        print(f"Folder '{dir_name}' created successfully.")
+    else:
+        print(f"Folder '{dir_name}' already exists.")
+
+def check_and_create_dirs():
+    """
+    Checks for the existance of and creates direcories if necessary
+    """
+    rd.check_wdir()
+
+    # output directories
+    create_folder('outputs')
+    create_folder('diff_rasters', 'outputs')
+    create_folder('frac_rasters', 'outputs')
+    create_folder('test_IO')
+
+    # documentation build directory
+    create_folder('build', '../docs')
 
 def write_raster(raster, var_name, output_dir='outputs/'):
     """

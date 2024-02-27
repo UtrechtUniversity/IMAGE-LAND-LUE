@@ -1053,6 +1053,7 @@ def main():
     """main function of new landcover model"""
 
     rd.check_wdir()
+    wt.check_and_create_dirs()
 
     if not prm.STANDALONE:
         rd.prepare_input_files()

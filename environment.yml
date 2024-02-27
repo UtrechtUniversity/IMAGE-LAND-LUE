@@ -1,15 +1,18 @@
 name: image
 channels:
-  - conda-forge
+   - conda-forge
+   - https://lue.computationalgeography.org/download/conda
+   - nodefaults
 dependencies:
-  - lue
-  - netcdf4
-  - psutil
-  - tqdm
-  - rasterio
-  - openpyxl
-  - sphinx
-  - sphinx_rtd_theme
-  - linkify-it-py
-  - recommonmark
-  - myst-parser=0.19.1
+   - lue=0.3.8
+   - netcdf4
+   - psutil
+   - tqdm
+   - rasterio
+   - openpyxl
+   - sphinx
+   - sphinx_rtd_theme
+   - linkify-it-py
+   - recommonmark
+   - myst-parser=0.19.1
+   - xarray
