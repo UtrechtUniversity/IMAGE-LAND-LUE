@@ -34,3 +34,6 @@ imagelcm/outputs/
 *.woff 
 *.woff2
 
+# sphinx build folders
+docs/build/doctrees
+docs/build/html
