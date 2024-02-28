@@ -44,5 +44,11 @@ MF_AS_GI = True
 
 # whether to use np or lue integrate function
 
+# how many timesteps to run the model for
+N_STEPS = 10
+
+# how many years each timestep is equivalent to
+INTERVAL = 5
+
 # whether to print inputs and ouputs throughout the model for debugging
 CHECK_IO = False

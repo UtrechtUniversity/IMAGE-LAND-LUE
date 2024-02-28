@@ -1087,7 +1087,7 @@ def main():
 
     ##############################
     # do the allocation!
-    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, 10, 5)
+    perform_allocation_loop(input_rasters, nonraster_inputs, ir_info, prm.N_STEPS, prm.INTERVAL)
     ##############################
 
     print(f"Time taken: {time()-start}")

@@ -82,7 +82,7 @@ def plot_saved_netcdf(var_name, nr, nc, shape, projection=ccrs.AlbersEqualArea()
     print(shape)
     print(lon.shape)
 
-    var = xr.open_dataarray(f"{dir}\\{var_name}_{nr}_{nc}_{shape}.npy")
+    var = xr.open_dataarray(f"{dir}\\{var_name}_{nr}_{nc}_{shape}.nc")
 
     var_shape = var.shape
 
