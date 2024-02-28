@@ -22,6 +22,10 @@
 imagelcm/data/
 imagelcm/outputs/
 
+# sphinx build folders
+docs/build/doctrees
+docs/build/html
+
 # sphinx build files
 *.html
 *.doctree
@@ -33,7 +37,3 @@ imagelcm/outputs/
 *.ttf 
 *.woff 
 *.woff2
-
-# sphinx build folders
-docs/build/doctrees
-docs/build/html
