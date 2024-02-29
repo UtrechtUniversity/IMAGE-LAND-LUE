@@ -11,6 +11,9 @@ EPS = 1e-6
 # map shape
 SHP = (2160, 4320)
 
+# partition shape
+PART_SHP = (800, 800)
+
 # number of food crops
 NFC = 16
 
@@ -42,7 +45,8 @@ N_REG = 26
 # whether to use grass management factor as de-facto grazing intensity
 MF_AS_GI = True
 
-# whether to use np or lue integrate function
+# whether to use np or lue integrate+allocate functions
+FULL_LUE = True
 
 # how many timesteps to run the model for
 N_STEPS = 10

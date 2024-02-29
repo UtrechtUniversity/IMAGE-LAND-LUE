@@ -16,3 +16,4 @@ dependencies:
    - recommonmark
    - myst-parser=0.19.1
    - xarray
+   - cartopy

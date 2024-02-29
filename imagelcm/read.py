@@ -36,14 +36,14 @@ def prepare_input_files():
     co.convert_management_outfiles('GI') # pylint: disable=no-member
     co.convert_management_outfiles('FH') # pylint: disable=no-member
 
-def read_raster(res, file_name, data_dir="data/"):
+def read_raster(part_shape, file_name, data_dir="data/"):
     """
-    Reads rasters of specified resolution into LUE.
+    Reads rasters of specified into LUE.
     
     Parameters
     ----------
-    res : int or float
-          resolution of the raster to be read in
+    part_shape : tuple
+                 shape of the partitions the array is to be separated into
     file_name : str
                 name of the raster file, including the extension
     data_dir : str, default = 'data/'
@@ -52,23 +52,10 @@ def read_raster(res, file_name, data_dir="data/"):
     Returns
     -------
     raster : lue data object
-
-    Raises
-    ------
-    TypeError
-        if res is neither an int nor a float
     """
-
-    if not isinstance(res, int) and not isinstance(res, float):
-        raise TypeError("input 'res' must be an integer or float")
-
-    # 1x2 partitions
-    res_factor = int(60/res)
-    shape = (180*res_factor, 360*res_factor/2)
-
     path_name = data_dir + file_name
 
-    raster = lfr.from_gdal(path_name, shape) # pylint: disable=no-member
+    raster = lfr.from_gdal(path_name, partition_shape=part_shape) # pylint: disable=no-member
 
     # ensure datatype is float, not int
     if raster.dtype==np.int32:
@@ -76,14 +63,14 @@ def read_raster(res, file_name, data_dir="data/"):
 
     return raster
 
-def read_raster_np(res, file_name, data_dir="data/", target_dtype='float'):
+def read_raster_np(part_shape, file_name, data_dir="data/", target_dtype='float'):
     """
-    Reads rasters of specified resolution into LUE VIA XARRAY AND NUMPY!
+    Reads rasters of specified part_shapeolution into LUE VIA XARRAY AND NUMPY!
     
     Parameters
     ----------
-    res : int or float
-          resolution of the raster to be read in
+    part_shape : tuple
+                 shape of the partitions the array is to be separated into
     file_name : str
                 name of the raster file, including the extension
     data_dir : str, default = 'data/'
@@ -94,19 +81,7 @@ def read_raster_np(res, file_name, data_dir="data/", target_dtype='float'):
     Returns
     -------
     raster : lue data object
-
-    Raises
-    ------
-    TypeError
-        if res is neither an int nor a float
     """
-
-    if not isinstance(res, int) and not isinstance(res, float):
-        raise TypeError("input 'res' must be an integer or float")
-
-    # 1x2 partitions
-    res_factor = int(60/res)
-    shape = (180*res_factor, 360*res_factor/2)
 
     path_name = data_dir + file_name
 
@@ -119,7 +94,7 @@ def read_raster_np(res, file_name, data_dir="data/", target_dtype='float'):
         raster_np = raster_np[0, :, :]
 
     # raster = lfr.from_gdal(path_name, shape) # pylint: disable=no-member
-    raster = lfr.from_numpy(raster_np, partition_shape=shape) # pylint: disable=no-member
+    raster = lfr.from_numpy(raster_np, partition_shape=part_shape) # pylint: disable=no-member
 
     # ensure datatype is float, not int
     if target_dtype=='float' and raster.dtype==np.int32:
@@ -151,17 +126,17 @@ def read_input_rasters(data_dir="data/"):
 
     # read in constant maps
     # greg = read_raster_np(5, "GREG_5MIN.nc", target_dtype='int')
-    greg = read_raster_np(5, "greg_5min_int.nc", target_dtype='int')
-    glct = read_raster_np(5, "GLCT.NC")
-    gsuit = read_raster_np(5, "gsuit_new_world.nc")
+    greg = read_raster_np(prm.PART_SHP, "greg_5min_int.nc", target_dtype='int')
+    glct = read_raster_np(prm.PART_SHP, "GLCT.NC")
+    gsuit = read_raster_np(prm.PART_SHP, "gsuit_new_world.nc")
     # garea = read_raster_np(5, "gareacell.nc")
-    garea = read_raster_np(5, "GAREACELLNOWATER.nc")
+    garea = read_raster_np(prm.PART_SHP, "GAREACELLNOWATER.nc")
 
     grmppc_maps = []
     fractions = []
     for crop in range(prm.NGFBFC): # pylint: disable=no-member
-        fractions.append(read_raster_np(5, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac/"))
-        grmppc_maps.append(read_raster(5, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc/"))
+        fractions.append(read_raster_np(prm.PART_SHP, f"gfrac{crop}.nc", data_dir=data_dir+"gfrac/"))
+        grmppc_maps.append(read_raster(prm.PART_SHP, f"grmppc{crop}_5MIN.tif", data_dir=data_dir+"grmppc/"))
 
     input_rasters = {'R':greg, 'suit':gsuit, 'A':garea, 'p_c':grmppc_maps, 'f':fractions,
                      'lct':glct}

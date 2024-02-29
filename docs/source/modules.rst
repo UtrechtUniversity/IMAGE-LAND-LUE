@@ -11,3 +11,5 @@ ImageLCM
    write
    np_test_module
    analysis
+   plotting
+   single_timestep

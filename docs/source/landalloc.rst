@@ -1,5 +1,5 @@
 landalloc module
-=====================
+================
 
 .. automodule:: landalloc
    :members:

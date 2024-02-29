@@ -1,7 +1,9 @@
 General Model Information
 =========================
 
-llkl
+For a general overview of the land allocation process, including the formulae underpinning the model, 
+and with links to other relevant files, it is recommended that you start with IMAGE-LAND Allocation
+and Formulae.
 
 .. toctree::
    :maxdepth: 4
@@ -16,4 +18,5 @@ llkl
    Inputs
    Key Differences
    Original IMAGE-LAND
+   outputs
 

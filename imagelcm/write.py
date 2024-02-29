@@ -5,12 +5,13 @@ import os
 import xarray as xr
 import lue.framework as lfr
 import read as rd
+import parameters as prm
 
 def create_folder(dir_name, rel_path=""):
     """
     Checks for existance of a directory and creates it if necessary
 
-    PARAMETERS
+    Parameters
     ----------
     dir_name : str
                name of the directory to be created (if necessary)
@@ -89,13 +90,13 @@ def write_np_raster(file_name, array, output_dir='outputs/'):
 
     if len(shape)==3:
         for ind in range(shape[0]):
-            lue_array = lfr.from_numpy(array[ind, :, :], partition_shape=shape[1:])
+            lue_array = lfr.from_numpy(array[ind, :, :], partition_shape=prm.PART_SHP)
             # prevent GDAL tiff directory count error
             lfr.wait(lue_array)
             lfr.to_gdal(lue_array, f'{output_dir}{file_name}_{ind}.tif')
 
     elif len(shape)==2:
-        lue_array = lfr.from_numpy(array, partition_shape=shape)
+        lue_array = lfr.from_numpy(array, partition_shape=prm.PART_SHP)
         lfr.wait(lue_array)
         lfr.to_gdal(lue_array, f'{output_dir}{file_name}.tif')
 
