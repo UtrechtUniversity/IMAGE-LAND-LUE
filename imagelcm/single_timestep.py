@@ -989,10 +989,11 @@ def allocate_single_timestep_full_lue(input_rasters, nonraster_inputs, timestep,
                                                               fracs_r1, reg_demands_lue,
                                                               ir_yields_lue, ir_frac)
 
-    # NB: I think lfr.wait() should be called on reg_prod_updated to be able to access the values,
-    # also the format isn't a np array? dictionary of lists
+    # make program wait for reg_prod_updated to be calculated, a value and no longer a future
+    reg_prod_updated = reg_prod_updated.get()
 
-    lfr.wait(reg_prod_updated)
+    # convert dictionary containing lists into 2D np array, via Python list of lists
+    reg_prod_updated = np.asarray(list(reg_prod_updated.values()))
 
     # determine whether expansion is necessary
     demands_met = reg_prod_updated >= (reg_demands - prm.EPS)
@@ -1008,7 +1009,7 @@ def allocate_single_timestep_full_lue(input_rasters, nonraster_inputs, timestep,
         #                                                         np_rasters['suit'], reg_demands,
         #                                                         cells_relevant,
         #                                                         initial_reg_prod=reg_prod_updated)
-        
+
         # here need to do integrate_and_allocate following non-cropland route, using
         # reg_prod_updated where ir_yields_lue was used in the last integrate_and_allocate call.
         pass

@@ -46,7 +46,7 @@ N_REG = 26
 MF_AS_GI = True
 
 # whether to use np or lue integrate+allocate functions
-FULL_LUE = True
+FULL_LUE = False
 
 # how many timesteps to run the model for
 N_STEPS = 10
