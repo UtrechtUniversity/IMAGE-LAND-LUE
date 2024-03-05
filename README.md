@@ -1,5 +1,5 @@
 # IMAGE-LAND-LUE
-Land cover model from the IMAGE 3.1 Integrated Assessment Model, implemented with the LUE framework.
+This software is the result of the project Building Blocks for Integrated Assessment Modelling (see projects listed [here](https://www.uu.nl/staff/JAVerstegen/Research)), funded by [FAIR Research IT of Utrecht University](https://www.uu.nl/en/organisation/information-and-technology-services-its/what-we-do/research-and-it). It is a free and open source software (FOSS) Python version (implemented with the LUE framework) of the simulation model [IMAGE-land] (https://models.pbl.nl/image/index.php/Land_cover_and_land_use), the land cover change model from the IMAGE 3.1 Integrated Assessment Model (IAM). IMAGE-land is a central part of IMAGE, used to make projections of future environmental change and effects of possible response strategies to support international policy processes.  
 
 ## Running the model
 To run the model, first the repository should be [cloned](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository), then the below steps followed:
@@ -11,11 +11,11 @@ To run the model, first the repository should be [cloned](https://docs.github.co
 4. Run `landalloc.py`. The number of timesteps and number of years each timestep is equivalent to can be adjusted by changing the `N_STEPS` and `INTERVAL` values in `parameters.py`. For more information, see the documentation.
 
 ## Docs and contributing to IMAGE-LAND-LUE
-The documentation for IMAGE-LAND-LUE is not yet online, however all the source files to build the docs using [Sphinx](https://www.sphinx-doc.org/en/master/) are present in the repository. If the image conda environment is already installed (see steps above), the steps to build and consult the documentation are as follows:
+The documentation for IMAGE-LAND-LUE is not yet available as a website, however all the source files to build the docs using [Sphinx](https://www.sphinx-doc.org/en/master/) are present in the repository. If the image conda environment is already installed (see steps above), the steps to build and consult the documentation are as follows:
 1. Navigate to the docs folder in the terminal.
 2. Run the prompt:
     ```sphinx-build -M html source build```.
-    Note that `source` and `build` are the directories containing the source material to build the docs and the target directory for the build files, respectively. If the names of these folders are changed, `source` and `build` i nthe above command must be replaced with the new names .
+    Note that `source` and `build` are the directories containing the source material to build the docs and the target directory for the build files, respectively. If the names of these folders are changed, `source` and `build` in the above command must be replaced with the new names.
 3. The docs can be consulted by navigating to `docs/build/html` and running index.html. The documentation landing page will open in your default web browser.
 
 It is recommended that the docs be consulted before trying to alter the model, as they contain general information about IMAGE-LAND and the allocation process, in addition to the information contained in the file and function docstrings.
